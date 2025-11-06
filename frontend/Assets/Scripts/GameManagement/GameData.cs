@@ -1,7 +1,15 @@
+using System.Collections.Generic;
+
 [System.Serializable]
 public class GameData
 {
-    public int playerID;
-    public int playgroundID;
-    public string name = "Cem";
+    public List<UserData> userData = new List<UserData>();
+    public UserData currentUser;
+}
+
+
+public enum UserType
+{
+    Teacher,
+    Student
 }

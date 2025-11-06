@@ -1,4 +1,34 @@
 {
-    "playerID": 0,
-    "playgroundID": 0
+    "userData": [
+        {
+            "type": 0,
+            "username": "Steve",
+            "password": "Steve123",
+            "email": "steve12@gmail.com"
+        },
+        {
+            "type": 1,
+            "username": "Larry",
+            "password": "Larry123",
+            "email": "larry12@gmail.com"
+        },
+        {
+            "type": 1,
+            "username": "Sam",
+            "password": "Sam123",
+            "email": "sam12@gmail.com"
+        },
+        {
+            "type": 1,
+            "username": "Jenny",
+            "password": "Jenny123",
+            "email": "jenny12@gmail.com"
+        }
+    ],
+    "currentUser": {
+        "type": 0,
+        "username": "Steve",
+        "password": "Steve123",
+        "email": "steve12@gmail.com"
+    }
 }
