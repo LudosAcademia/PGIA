@@ -5,6 +5,10 @@ using UnityEngine.InputSystem;
 
 public class InputManager : MonoBehaviour
 {
+    [SerializeField] private Transform cameraPivot;
+    private Transform cameraPivotCache;
+    private float rotateCameraPivot = 0;
+
     [SerializeField] private InputSystem inputSystem;
     [SerializeField] private Camera mainCamera;
 
@@ -18,7 +22,7 @@ public class InputManager : MonoBehaviour
     private void Awake()
     {
         inputSystem = new InputSystem();
-
+        cameraPivotCache = cameraPivot;
     }
 
     private void OnEnable()
@@ -40,15 +44,14 @@ public class InputManager : MonoBehaviour
     private void MouseClicked(InputAction.CallbackContext context)
     {
         enter = true;
-        Debug.Log("Mouse Clicked");
+        //Debug.Log("Mouse Clicked");
     }
 
     private void EspaceClicked(InputAction.CallbackContext context)
     {
         exit = true;
-        Debug.Log("Mouse Pressed");
+        //Debug.Log("Mouse Pressed");
     }
-
 
     private void Update()
     {
@@ -63,6 +66,18 @@ public class InputManager : MonoBehaviour
             OnExit?.Invoke();
             exit = false;
         }
+    }
+
+    public void ZoomCamera(float zoom)
+    {
+        mainCamera.transform.position = 
+        Vector3.MoveTowards(mainCamera.transform.position, cameraPivotCache.transform.position, zoom);
+    }
+
+    public void RotateCamera(int dir)
+    {
+        rotateCameraPivot += dir;
+        cameraPivot.Rotate(0, dir, 0);
     }
 
     public bool IsPointerOverUI() => EventSystem.current.IsPointerOverGameObject();
