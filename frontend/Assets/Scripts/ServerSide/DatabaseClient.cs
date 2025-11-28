@@ -1,11 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class DatabaseClient : MonoBehaviour
 {
-    string apiUrl = "http://localhost:3000/players";
+    //string apiUrl = "http://localhost:3000/players";
 
     public void Start()
     {
@@ -25,8 +23,10 @@ public class DatabaseClient : MonoBehaviour
         GameManager.Instance.GetGameData().userData = userData;
     }
 
+}
 
-    IEnumerator GetData()
+/*
+     IEnumerator GetData()
     {
         UnityWebRequest request = UnityWebRequest.Get(apiUrl);
         yield return request.SendWebRequest();
@@ -40,5 +40,4 @@ public class DatabaseClient : MonoBehaviour
             Debug.LogError("Error: " + request.error);
         }
     }
-
-}
+ */
