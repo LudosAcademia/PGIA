@@ -1099,6 +1099,24 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RotateLeft"",
+                    ""type"": ""Button"",
+                    ""id"": ""93adb6ae-7cc2-4f75-adc8-303c4891728d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RotateRight"",
+                    ""type"": ""Button"",
+                    ""id"": ""5debefab-2a9a-4dcb-8bfa-30160a1c1800"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -1121,6 +1139,28 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": "";Gamepad"",
                     ""action"": ""Escape"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""40796d63-129d-4f42-973b-98f8d214f513"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RotateLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7bddd621-93e7-48d1-83d8-968a3802804e"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RotateRight"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1217,6 +1257,8 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         m_PlacementInput = asset.FindActionMap("PlacementInput", throwIfNotFound: true);
         m_PlacementInput_MouseClick = m_PlacementInput.FindAction("MouseClick", throwIfNotFound: true);
         m_PlacementInput_Escape = m_PlacementInput.FindAction("Escape", throwIfNotFound: true);
+        m_PlacementInput_RotateLeft = m_PlacementInput.FindAction("RotateLeft", throwIfNotFound: true);
+        m_PlacementInput_RotateRight = m_PlacementInput.FindAction("RotateRight", throwIfNotFound: true);
     }
 
     ~@InputSystem()
@@ -1680,6 +1722,8 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
     private List<IPlacementInputActions> m_PlacementInputActionsCallbackInterfaces = new List<IPlacementInputActions>();
     private readonly InputAction m_PlacementInput_MouseClick;
     private readonly InputAction m_PlacementInput_Escape;
+    private readonly InputAction m_PlacementInput_RotateLeft;
+    private readonly InputAction m_PlacementInput_RotateRight;
     /// <summary>
     /// Provides access to input actions defined in input action map "PlacementInput".
     /// </summary>
@@ -1699,6 +1743,14 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "PlacementInput/Escape".
         /// </summary>
         public InputAction @Escape => m_Wrapper.m_PlacementInput_Escape;
+        /// <summary>
+        /// Provides access to the underlying input action "PlacementInput/RotateLeft".
+        /// </summary>
+        public InputAction @RotateLeft => m_Wrapper.m_PlacementInput_RotateLeft;
+        /// <summary>
+        /// Provides access to the underlying input action "PlacementInput/RotateRight".
+        /// </summary>
+        public InputAction @RotateRight => m_Wrapper.m_PlacementInput_RotateRight;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1731,6 +1783,12 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
             @Escape.started += instance.OnEscape;
             @Escape.performed += instance.OnEscape;
             @Escape.canceled += instance.OnEscape;
+            @RotateLeft.started += instance.OnRotateLeft;
+            @RotateLeft.performed += instance.OnRotateLeft;
+            @RotateLeft.canceled += instance.OnRotateLeft;
+            @RotateRight.started += instance.OnRotateRight;
+            @RotateRight.performed += instance.OnRotateRight;
+            @RotateRight.canceled += instance.OnRotateRight;
         }
 
         /// <summary>
@@ -1748,6 +1806,12 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
             @Escape.started -= instance.OnEscape;
             @Escape.performed -= instance.OnEscape;
             @Escape.canceled -= instance.OnEscape;
+            @RotateLeft.started -= instance.OnRotateLeft;
+            @RotateLeft.performed -= instance.OnRotateLeft;
+            @RotateLeft.canceled -= instance.OnRotateLeft;
+            @RotateRight.started -= instance.OnRotateRight;
+            @RotateRight.performed -= instance.OnRotateRight;
+            @RotateRight.canceled -= instance.OnRotateRight;
         }
 
         /// <summary>
@@ -2016,5 +2080,19 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnEscape(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "RotateLeft" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRotateLeft(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "RotateRight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRotateRight(InputAction.CallbackContext context);
     }
 }

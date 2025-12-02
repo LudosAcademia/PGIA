@@ -1,16 +1,31 @@
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 public class ObjectPlacer : MonoBehaviour
 {
     private List<GameObject> placedGameObjects = new();
+    private Vector3 newObjectRotation = Vector3.zero;
 
-    internal int PlaceObject(GameObject prefab, Vector3 postion)
+    internal int PlaceObject(GameObject prefab, Vector3 position)
     {
         GameObject newObject = Instantiate(prefab);
-        newObject.transform.position = postion;
+        newObject.transform.position = position;
+        newObject.transform.rotation = Quaternion.Euler(newObjectRotation);
         placedGameObjects.Add(newObject);
         return placedGameObjects.Count - 1;
+    }
+
+    internal void RotateObject(int dir)
+    {
+        if (dir == 0)
+        {
+            newObjectRotation -= new Vector3(0, 90, 0);
+        }
+        else
+        {
+            newObjectRotation += new Vector3(0, 90, 0);
+        }
     }
 
     internal void RemoveObjectAt(int gameObjectIndex)

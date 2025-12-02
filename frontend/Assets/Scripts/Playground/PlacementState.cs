@@ -47,6 +47,20 @@ public class PlacementState : IBuildingState
     }
 
 
+    private void RotateStructure(int dir)
+    {
+
+        if (dir == 0)
+        {
+            objectPlacer.RotateObject(90);
+        }
+        else
+        {
+            objectPlacer.RotateObject(-90);
+        }
+
+    }
+
     public void OnAction(Vector3Int gridPosition)
     {
 
@@ -77,4 +91,8 @@ public class PlacementState : IBuildingState
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), placementValidity);
     }
 
+    void IBuildingState.RotateStructure(int direction)
+    {
+        RotateStructure(direction);
+    }
 }

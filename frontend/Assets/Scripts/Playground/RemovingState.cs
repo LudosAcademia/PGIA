@@ -74,25 +74,6 @@ public class RemovingState : IBuildingState
     }
 
 
-    /*
-        if (selectedData == null)
-        {
-            //sound
-            //Debug.Log("SelectedData is null no object to remove");
-        }
-        else
-        {
-            Debug.Log("Removing Object");
-            gameObjectIndex = selectedData.GetRepresentationIndex(gridPosition);
-            if (gameObjectIndex == -1) { return; }
-            //Debug.Log("Object to be removed: " + selectedData.GetRepresentationIndex(gridPosition));
-
-            selectedData.RemoveObjectAt(gridPosition);
-            objectPlacer.RemoveObjectAt(gameObjectIndex);
-        }
-     
-     */
-
     private bool CheckIfSelectionIsValid(Vector3Int gridPosition)
     {
         return !(propData.CanPlaceObjectAt(gridPosition, Vector2Int.one)
@@ -105,7 +86,10 @@ public class RemovingState : IBuildingState
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), validity);
     }
 
-
+    public void RotateStructure(int direction)
+    {
+        Debug.Log("Cant rotate on remove");
+    }
 }
 
 
