@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class RemovingState : IBuildingState
@@ -6,24 +5,25 @@ public class RemovingState : IBuildingState
     private int gameObjectIndex = -1;
     Grid grid;
     PreviewSystem previewSystem;
-    GridData floorData;
-    GridData propData;
+    GridData basePropData;
+    GridData levelPropData;
     ObjectPlacer objectPlacer;
-
 
     public RemovingState(Grid grid,
                          PreviewSystem previewSystem,
-                         GridData floorData,
-                         GridData propData,
+                         GridData basePropData,
+                         GridData levelPropData,
+                         
                          ObjectPlacer objectPlacer)
     {
         this.grid = grid;
         this.previewSystem = previewSystem;
-        this.floorData = floorData;
-        this.propData = propData;
+        this.basePropData = basePropData;
+        this.levelPropData = levelPropData;
         this.objectPlacer = objectPlacer;
 
         previewSystem.StartShowingRemovePreview();
+
     }
 
     public void EndState()
@@ -33,16 +33,13 @@ public class RemovingState : IBuildingState
 
     public void OnAction(Vector3Int gridPosition)
     {
-        Debug.Log("Remove State OnAction" +
-            "PropData: " + propData.CanPlaceObjectAt(gridPosition, Vector2Int.one) +
-            "FloorData: " + floorData.CanPlaceObjectAt(gridPosition, Vector2Int.one));
 
 
         GridData selectedData = null;
-        if (propData.CanPlaceObjectAt(gridPosition, Vector2Int.one) == false)
+        if (basePropData.CanPlaceObjectAt(gridPosition, Vector2Int.one) == false)
         {
             //Debug.Log("there is prop exists here");
-            selectedData = propData;
+            selectedData = basePropData;
 
             Debug.Log("Removing Object");
             gameObjectIndex = selectedData.GetRepresentationIndex(gridPosition);
@@ -52,10 +49,10 @@ public class RemovingState : IBuildingState
             selectedData.RemoveObjectAt(gridPosition);
             objectPlacer.RemoveObjectAt(gameObjectIndex);
         }
-        else if (floorData.CanPlaceObjectAt(gridPosition, Vector2Int.one) == false)
+        else if (levelPropData.CanPlaceObjectAt(gridPosition, Vector2Int.one) == false)
         {
             //Debug.Log("there is floor exists here");
-            selectedData = floorData;
+            selectedData = levelPropData;
 
             Debug.Log("Removing Object");
             gameObjectIndex = selectedData.GetRepresentationIndex(gridPosition);
@@ -67,7 +64,8 @@ public class RemovingState : IBuildingState
             //Debug.Log("data: " + selectedData.GetRepresentationIndex(gridPosition));
         }
 
-     
+
+
         Vector3 cellPosition = grid.CellToWorld(gridPosition);
         previewSystem.UpdatePosition(cellPosition, CheckIfSelectionIsValid(gridPosition));
 
@@ -76,8 +74,8 @@ public class RemovingState : IBuildingState
 
     private bool CheckIfSelectionIsValid(Vector3Int gridPosition)
     {
-        return !(propData.CanPlaceObjectAt(gridPosition, Vector2Int.one)
-            && floorData.CanPlaceObjectAt(gridPosition, Vector2Int.one));
+        return !(basePropData.CanPlaceObjectAt(gridPosition, Vector2Int.one)
+            && levelPropData.CanPlaceObjectAt(gridPosition, Vector2Int.one));
     }
 
     public void UpdateState(Vector3Int gridPosition)
@@ -86,10 +84,6 @@ public class RemovingState : IBuildingState
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), validity);
     }
 
-    public void RotateStructure(int direction)
-    {
-        Debug.Log("Cant rotate on remove");
-    }
 }
 
 
@@ -97,6 +91,9 @@ public class RemovingState : IBuildingState
    
 
 /---------------------------------------------------------------------------------------
+      Debug.Log("Remove State OnAction" +
+            "PropData: " + propData.CanPlaceObjectAt(gridPosition, Vector2Int.one) +
+            "FloorData: " + floorData.CanPlaceObjectAt(gridPosition, Vector2Int.one));
 
 
 

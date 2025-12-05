@@ -7,58 +7,45 @@ public class PlacementState : IBuildingState
     Grid grid;
     PreviewSystem previewSystem;
     ObjectsDatabase database;
-    GridData floorData;
-    GridData propData;
+    GridData basePropData;
+    GridData levelPropData;
     ObjectPlacer objectPlacer;
 
     public PlacementState(int iD,
                           Grid grid,
                           PreviewSystem previewSystem,
                           ObjectsDatabase database,
-                          GridData floorData,
-                          GridData propData,
+                          GridData basePropData,
+                          GridData levelPropData,
                           ObjectPlacer objectPlacer)
     {
         ID = iD;
         this.grid = grid;
         this.previewSystem = previewSystem;
         this.database = database;
-        this.floorData = floorData;
-        this.propData = propData;
+        this.basePropData = basePropData;
+        this.levelPropData = levelPropData;
         this.objectPlacer = objectPlacer;
 
-        selectedObjectIndex = database.objectsData.FindIndex(data => data.ID == ID);
+
+        selectedObjectIndex = database.objectData.FindIndex(data => data.ID == ID);
         if (selectedObjectIndex > -1)
         {
             //cellIndicator.SetActive(true);
-            previewSystem.StartShowingPlacementPreview(database.objectsData[selectedObjectIndex].Prefab,
-                database.objectsData[selectedObjectIndex].Size);
+            previewSystem.StartShowingPlacementPreview(database.objectData[selectedObjectIndex].Prefab,
+                database.objectData[selectedObjectIndex].Size);
         }
         else
         {
             throw new System.Exception($"No Object with ID {iD}");
         }
 
+
     }
 
     public void EndState()
     {
         previewSystem.StopShowingPreview();
-    }
-
-
-    private void RotateStructure(int dir)
-    {
-
-        if (dir == 0)
-        {
-            objectPlacer.RotateObject(90);
-        }
-        else
-        {
-            objectPlacer.RotateObject(-90);
-        }
-
     }
 
     public void OnAction(Vector3Int gridPosition)
@@ -68,20 +55,62 @@ public class PlacementState : IBuildingState
         if (placementValidity == false) { return; }
 
 
-        int index = objectPlacer.PlaceObject(database.objectsData[selectedObjectIndex].Prefab, grid.CellToWorld(gridPosition));
+        int index = objectPlacer.PlaceObject(database.objectData[selectedObjectIndex].Prefab, grid.CellToWorld(gridPosition), selectedObjectIndex);
 
-        GridData selectedData = database.objectsData[selectedObjectIndex].ID == 0 ? floorData : propData;
+        GridData selectedData = database.objectData[selectedObjectIndex].PropLevel == PropLevel.Base ? basePropData : levelPropData;
         selectedData.AddObject(gridPosition,
-            database.objectsData[selectedObjectIndex].Size,
-            database.objectsData[selectedObjectIndex].ID,
+            database.objectData[selectedObjectIndex].Size,
+            database.objectData[selectedObjectIndex].ID,
             index);
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), false);
     }
 
     private bool CheckPlacementValidity(Vector3Int gridPosition, int selectedObjectIndex)
     {
-        GridData selectedData = database.objectsData[selectedObjectIndex].ID == 0 ? floorData : propData;
-        return selectedData.CanPlaceObjectAt(gridPosition, database.objectsData[selectedObjectIndex].Size);
+        GridData selectedData = database.objectData[selectedObjectIndex].PropLevel == PropLevel.Base ? basePropData : levelPropData;
+        return selectedData.CanPlaceObjectAt(gridPosition, database.objectData[selectedObjectIndex].Size);
+    }
+
+    public void UpdateState(Vector3Int gridPosition)
+    {
+        bool placementValidity = CheckPlacementValidity(gridPosition, selectedObjectIndex);
+
+        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), placementValidity);
+    }
+}
+
+/*
+ 
+
+
+
+
+    public void EndState()
+    {
+        previewSystem.StopShowingPreview();
+    }
+
+    public void OnAction(Vector3Int gridPosition)
+    {
+
+        bool placementValidity = CheckPlacementValidity(gridPosition, selectedObjectIndex);
+        if (placementValidity == false) { return; }
+
+
+        int index = objectPlacer.PlaceObject(database.propData[selectedObjectIndex].Prefab, grid.CellToWorld(gridPosition));
+
+        GridData selectedData = database.propData[selectedObjectIndex].ID == 0 ? floorData : propData;
+        selectedData.AddObject(gridPosition,
+            database.propData[selectedObjectIndex].Size,
+            database.propData[selectedObjectIndex].ID,
+            index);
+        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), false);
+    }
+
+    private bool CheckPlacementValidity(Vector3Int gridPosition, int selectedObjectIndex)
+    {
+        GridData selectedData = database.propData[selectedObjectIndex].ID == 0 ? floorData : propData;
+        return selectedData.CanPlaceObjectAt(gridPosition, database.propData[selectedObjectIndex].Size);
     }
 
     public void UpdateState(Vector3Int gridPosition)
@@ -91,8 +120,7 @@ public class PlacementState : IBuildingState
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), placementValidity);
     }
 
-    void IBuildingState.RotateStructure(int direction)
-    {
-        RotateStructure(direction);
-    }
-}
+ 
+ 
+ 
+ */

@@ -12,32 +12,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6ca0ebb0bc766541b2750bc0827635f, type: 3}
   m_Name: Database
   m_EditorClassIdentifier: Assembly-CSharp::ObjectsDatabase
-  objectsData:
-  - <Name>k__BackingField: Floor
+  objectData:
+  - <Name>k__BackingField: Bed
     <ID>k__BackingField: 0
-    <Size>k__BackingField: {x: 1, y: 1}
-    <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: df47ff6414345764fa08d13a714f3936, type: 3}
+    <Size>k__BackingField: {x: 1, y: 2}
+    <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: bf669d282c72e474d992750096938857, type: 3}
+    <Interaction>k__BackingField: 4
+    <PropLevel>k__BackingField: 1
   - <Name>k__BackingField: Chair
     <ID>k__BackingField: 1
     <Size>k__BackingField: {x: 1, y: 1}
     <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: 7ff30ae1864b33d4c83dc0b9e57b9a92, type: 3}
-  - <Name>k__BackingField: Bed
-    <ID>k__BackingField: 2
-    <Size>k__BackingField: {x: 1, y: 2}
-    <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: bf669d282c72e474d992750096938857, type: 3}
+    <Interaction>k__BackingField: 4
+    <PropLevel>k__BackingField: 1
   - <Name>k__BackingField: Table
-    <ID>k__BackingField: 3
-    <Size>k__BackingField: {x: 3, y: 2}
+    <ID>k__BackingField: 2
+    <Size>k__BackingField: {x: 2, y: 3}
     <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: fb01cef03b779364e9eb1fbb7a5e0cbc, type: 3}
-  - <Name>k__BackingField: InputObject
+    <Interaction>k__BackingField: 4
+    <PropLevel>k__BackingField: 1
+  - <Name>k__BackingField: Floor
+    <ID>k__BackingField: 3
+    <Size>k__BackingField: {x: 1, y: 1}
+    <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: df47ff6414345764fa08d13a714f3936, type: 3}
+    <Interaction>k__BackingField: 0
+    <PropLevel>k__BackingField: 0
+  - <Name>k__BackingField: Input
     <ID>k__BackingField: 4
     <Size>k__BackingField: {x: 1, y: 1}
     <Prefab>k__BackingField: {fileID: 317304979405816993, guid: e04f7b62e73eae047818436a7a11cc71, type: 3}
-  - <Name>k__BackingField: OutputObject
-    <ID>k__BackingField: 6
+    <Interaction>k__BackingField: 1
+    <PropLevel>k__BackingField: 1
+  - <Name>k__BackingField: Output
+    <ID>k__BackingField: 5
     <Size>k__BackingField: {x: 1, y: 1}
     <Prefab>k__BackingField: {fileID: 6984671627724286027, guid: 5a72db8b7351c6a40af1ce4ff831049a, type: 3}
+    <Interaction>k__BackingField: 0
+    <PropLevel>k__BackingField: 1
   - <Name>k__BackingField: Actor
-    <ID>k__BackingField: 4
+    <ID>k__BackingField: 6
     <Size>k__BackingField: {x: 1, y: 1}
     <Prefab>k__BackingField: {fileID: 1811766248606365968, guid: 96794e205ffad644ea89c0066a0e45f4, type: 3}
+    <Interaction>k__BackingField: 0
+    <PropLevel>k__BackingField: 1

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.LightTransport;
+using UnityEngine.SceneManagement;
 
 public class PlacementSystem : MonoBehaviour
 {
@@ -11,19 +11,25 @@ public class PlacementSystem : MonoBehaviour
     [SerializeField] private ObjectsDatabase database;
     [SerializeField] private GameObject gridVisualization;
     [SerializeField] private PreviewSystem previewSystem;
+    [SerializeField] private Transform objectParent;
 
     IBuildingState buildingState;
 
-    private GridData floorData, propData;
+
+    private GridData basePropData, levelPropData;
     private Vector3Int lastDetectedPosition = Vector3Int.zero;
-    private bool isRemoving;
     [SerializeField] private ObjectPlacer objectPlacer;
+
+    private void Awake()
+    {
+        GameManager.Instance.GetGameData();
+    }
 
     private void Start()
     {
         StopPlacement();
-        floorData = new();
-        propData = new();
+        basePropData = new();
+        levelPropData = new();
     }
 
     private void Update()
@@ -40,10 +46,35 @@ public class PlacementSystem : MonoBehaviour
 
     }
 
+    public void StartPlayground()
+    {
+        PlaygroundData newPlayground = new PlaygroundData();
+        UserData userData = GameManager.Instance.GetGameData().currentUser;
+
+        for (int i = 0; i < objectParent.childCount; i++)
+        {
+            PropData newProp = new PropData();
+            newProp.iD = int.Parse(objectParent.GetChild(i).name);
+            newProp.position = objectParent.GetChild(i).position;
+            newProp.rotation = Vector3.one;
+            newPlayground.placedProps.Add(newProp);
+        }
+
+
+        userData.playgroundDatas.Add(newPlayground);
+        newPlayground.iD = userData.playgroundDatas.Count;
+        userData.currentPlaygroundIndex = newPlayground.iD - 1;
+        //Debug.Log(" newPlayground.iD: " + newPlayground.iD + " userData.currentPlaygroundIndex : " + userData.currentPlaygroundIndex);
+
+        GameManager.Instance.GetGameData().userData[GameManager.Instance.GetGameData().currentUserIndex] = userData;
+        GameManager.Instance.SaveGame();
+        GameManager.Instance.GoToLevel("PlaygroundScene");
+    }
+
     public void StartPlacement(int ID)
     {
         StopPlacement();
-        buildingState = new PlacementState(ID, grid, previewSystem, database, floorData, propData, objectPlacer);
+        buildingState = new PlacementState(ID, grid, previewSystem, database, basePropData, levelPropData, objectPlacer);
 
         gridVisualization.SetActive(true);
         inputManager.OnClicked += PlaceStructure;
@@ -56,7 +87,7 @@ public class PlacementSystem : MonoBehaviour
     {
         StopPlacement();
         gridVisualization.SetActive(true);
-        buildingState = new RemovingState(grid, previewSystem, floorData, propData, objectPlacer);
+        buildingState = new RemovingState(grid, previewSystem, basePropData, levelPropData, objectPlacer);
         inputManager.OnClicked += PlaceStructure;
         inputManager.OnExit += StopPlacement;
     }
@@ -73,7 +104,7 @@ public class PlacementSystem : MonoBehaviour
 
     private void RotateStructure(int dir)
     {
-        buildingState.RotateStructure(dir);
+
     }
 
 
@@ -84,7 +115,7 @@ public class PlacementSystem : MonoBehaviour
         buildingState.EndState();
         inputManager.OnClicked -= PlaceStructure;
         inputManager.OnExit -= StopPlacement;
-        inputManager.OnRotate -= RotateStructure;   
+        inputManager.OnRotate -= RotateStructure;
         lastDetectedPosition = Vector3Int.zero;
         buildingState = null;
     }
@@ -102,5 +133,12 @@ public class PlacementSystem : MonoBehaviour
         //previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), placementValidity);
         //lastDetectedPosition = gridPosition;
          //cellIndicator.SetActive(false);
+
+        Debug.Log("GameManager: " + (GameManager.Instance != null));
+        Debug.Log("GameData: " + (GameManager.Instance?.GetGameData() != null));
+        Debug.Log("CurrentUser: " + (GameManager.Instance?.GetGameData()?.currentUser != null));
+        Debug.Log("PlaygroundDatas: " + (GameManager.Instance?.GetGameData()?.currentUser?.playgroundDatas != null));
+
+
 
  */

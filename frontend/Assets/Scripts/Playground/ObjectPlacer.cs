@@ -6,12 +6,16 @@ public class ObjectPlacer : MonoBehaviour
 {
     private List<GameObject> placedGameObjects = new();
     private Vector3 newObjectRotation = Vector3.zero;
+    [SerializeField] private Transform objectParent;
 
-    internal int PlaceObject(GameObject prefab, Vector3 position)
+
+    internal int PlaceObject(GameObject prefab, Vector3 position, int iD)
     {
         GameObject newObject = Instantiate(prefab);
         newObject.transform.position = position;
         newObject.transform.rotation = Quaternion.Euler(newObjectRotation);
+        newObject.name = iD.ToString();
+        newObject.transform.SetParent(objectParent);
         placedGameObjects.Add(newObject);
         return placedGameObjects.Count - 1;
     }

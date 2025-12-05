@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class GameData
 {
     public List<UserData> userData = new List<UserData>();
+    public int currentUserIndex = 0;
     public UserData currentUser;
 }
 

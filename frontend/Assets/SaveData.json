@@ -1,34 +1,55 @@
 {
     "userData": [
         {
+            "iD": 0,
             "type": 0,
             "username": "Steve",
             "password": "Steve123",
-            "email": "steve12@gmail.com"
+            "email": "steve12@gmail.com",
+            "phone": 0,
+            "playgroundDatas": [],
+            "currentPlaygroundIndex": 0
         },
         {
+            "iD": 1,
             "type": 1,
             "username": "Larry",
             "password": "Larry123",
-            "email": "larry12@gmail.com"
+            "email": "larry12@gmail.com",
+            "phone": 0,
+            "playgroundDatas": [],
+            "currentPlaygroundIndex": 0
         },
         {
+            "iD": 2,
             "type": 1,
             "username": "Sam",
             "password": "Sam123",
-            "email": "sam12@gmail.com"
+            "email": "sam12@gmail.com",
+            "phone": 0,
+            "playgroundDatas": [],
+            "currentPlaygroundIndex": 0
         },
         {
+            "iD": 3,
             "type": 1,
             "username": "Jenny",
             "password": "Jenny123",
-            "email": "jenny12@gmail.com"
+            "email": "jenny12@gmail.com",
+            "phone": 0,
+            "playgroundDatas": [],
+            "currentPlaygroundIndex": 0
         }
     ],
+    "currentUserIndex": 0,
     "currentUser": {
+        "iD": 0,
         "type": 0,
         "username": "Steve",
         "password": "Steve123",
-        "email": "steve12@gmail.com"
+        "email": "steve12@gmail.com",
+        "phone": 0,
+        "playgroundDatas": [],
+        "currentPlaygroundIndex": 0
     }
 }

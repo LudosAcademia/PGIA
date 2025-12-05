@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class GridData : MonoBehaviour
 {
-    Dictionary<Vector3Int, PlacementData> placedObjects = new();
+    private Dictionary<Vector3Int, PlacementData> placedObjects = new();
+
+    public Dictionary<Vector3Int, PlacementData> PlacedObjects { get => placedObjects; set => placedObjects = value; }
 
     public void AddObject(Vector3Int gridPosition, Vector2Int objectSize, int ID, int placedObjectIndex)
     {
@@ -53,7 +55,7 @@ public class GridData : MonoBehaviour
 
     internal void RemoveObjectAt(Vector3Int gridPosition)
     {
-        Debug.Log("Remove Object Data");
+        //Debug.Log("Remove Object Data");
         foreach (var pos in placedObjects[gridPosition].occupiedPositions)
         {
             placedObjects.Remove(pos);

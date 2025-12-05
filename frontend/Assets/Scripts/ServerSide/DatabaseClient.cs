@@ -16,10 +16,10 @@ public class DatabaseClient : MonoBehaviour
     {
         List<UserData> userData = new List<UserData>();
 
-        userData.Add(new UserData(UserType.Teacher, "Steve", "Steve123", "steve12@gmail.com"));
-        userData.Add(new UserData(UserType.Student, "Larry", "Larry123", "larry12@gmail.com"));
-        userData.Add(new UserData(UserType.Student, "Sam", "Sam123", "sam12@gmail.com"));
-        userData.Add(new UserData(UserType.Student, "Jenny", "Jenny123", "jenny12@gmail.com"));
+        userData.Add(new UserData(0, UserType.Teacher, "Steve", "Steve123", "steve12@gmail.com"));
+        userData.Add(new UserData(1, UserType.Student, "Larry", "Larry123", "larry12@gmail.com"));
+        userData.Add(new UserData(2, UserType.Student, "Sam", "Sam123", "sam12@gmail.com"));
+        userData.Add(new UserData(3, UserType.Student, "Jenny", "Jenny123", "jenny12@gmail.com"));
         GameManager.Instance.GetGameData().userData = userData;
     }
 

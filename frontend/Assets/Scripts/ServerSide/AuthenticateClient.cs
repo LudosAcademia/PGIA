@@ -36,6 +36,7 @@ public class AuthenticateClient : MonoBehaviour
 
 
         userDetailText.text = userInfo;
+        GameManager.Instance.GetGameData().currentUserIndex = userData.FindIndex(p => p.iD == user.iD);
         Debug.Log(userInfo);
         Debug.Log(usernameInfo.text + " " + passwordInfo.text);
 
@@ -43,7 +44,8 @@ public class AuthenticateClient : MonoBehaviour
 
     public void StartGame()
     {
-        GameManager.Instance.GoToLevel("MainScene");
+
+        GameManager.Instance.GoToLevel("CreationScene");
     }
 
 
