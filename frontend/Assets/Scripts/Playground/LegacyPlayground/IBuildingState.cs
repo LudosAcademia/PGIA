@@ -1,0 +1,8 @@
+﻿using UnityEngine;
+
+public interface IBuildingState
+{
+    public abstract void EndState();
+    public abstract void OnAction(Vector3Int gridPosition);
+    public abstract void UpdateState(Vector3Int gridPosition);
+}

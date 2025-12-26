@@ -40,17 +40,18 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        if (File.Exists(Application.dataPath + "/SaveData.json"))
+        if (gameData == null)
         {
-            LoadGame();
-        }
-        else
-        {
+
             gameData = new GameData();
-            SaveGame();
+
         }
+        
+
 
     }
+
+
     //Go next level by giving level build index
     public void NextLevel(int level)
     {
@@ -60,29 +61,16 @@ public class GameManager : MonoBehaviour
     public void GoToLevel(string level)
     {
         SceneManager.LoadSceneAsync(level);
-        SaveGame();
+        //SaveGame();
     }
 
     public void GoToLevel(int level)
     {
         SceneManager.LoadSceneAsync(level);
-        SaveGame();
+        //SaveGame();
     }
 
-    //Save Game by calling this function
-    public void SaveGame()
-    {
-        string json = JsonUtility.ToJson(gameData, true);
-        File.WriteAllText(Application.dataPath + "/SaveData.json", json);
-        Debug.Log("Game Saved");
-    }
 
-    //Load Game by calling this function
-    public void LoadGame()
-    {
-        string json = File.ReadAllText(Application.dataPath + "/SaveData.json");
-        gameData = JsonUtility.FromJson<GameData>(json);
-    }
     //For setting the game data in Game Manager from a instance of a local game data object.
     public void SetGameData(GameData newGameData)
     {
@@ -95,6 +83,35 @@ public class GameManager : MonoBehaviour
         return gameData;
     }
 
+}
+
+/*
+         if (File.Exists(Application.dataPath + "/SaveData.json"))
+        {
+            LoadGame();
+        }
+        else
+        {
+            SaveGame();
+        }
+ 
+    //Save Game by calling this function
+    public void SaveGame()
+    {
+        //string json = JsonUtility.ToJson(gameData, true);
+        //File.WriteAllText(Application.dataPath + "/SaveData.json", json);
+        Debug.LogError("Game Save currently not implemented!");
+    }
+
+    //Load Game by calling this function
+    public void LoadGame()
+    {
+        //string json = File.ReadAllText(Application.dataPath + "/SaveData.json");
+        //gameData = JsonUtility.FromJson<GameData>(json);
+        Debug.LogError("Game Load currently not implemented!");
+
+    }
+
     //For reseting the game data in JSON and runtime game data.
     public void ResetGameData()
     {
@@ -103,4 +120,6 @@ public class GameManager : MonoBehaviour
         LoadGame();
     }
 
-}
+
+
+ */

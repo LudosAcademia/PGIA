@@ -2,26 +2,18 @@ using System;
 using System.Collections.Generic;
 
 [Serializable]
-public class UserData
+public class UserData 
 {
-    public int iD;
-    public UserType type;
-    public string username;
-    public string password;
-    public string email;
-    public int phone;
-    
-    public List<PlaygroundData> playgroundDatas = new List<PlaygroundData>();
-    public int currentPlaygroundIndex = 0;
+    public string name;
+    //current playground index:
+    public int curr_ply_index = 0;
 
+    public List<PlaygroundData> playgrounds = new List<PlaygroundData>();
+    
     public UserData() { }
 
-    public UserData(int iD, UserType type, string name, string password, string email)
+    public UserData(int id, string name)
     {
-        this.iD = iD;
-        this.type = type;
-        this.username = name;
-        this.password = password;
-        this.email = email;
+        this.name = name;
     }
 }
