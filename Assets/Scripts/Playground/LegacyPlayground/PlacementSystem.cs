@@ -8,15 +8,15 @@ public class PlacementSystem : MonoBehaviour
     [SerializeField] private Grid grid;
     [SerializeField] private ObjectsDatabase database;
     [SerializeField] private GameObject gridVisualization;
-    [SerializeField] private PreviewSystem previewSystem;
+    [SerializeField] private oldPreviewSystem previewSystem;
     [SerializeField] private Transform objectParent;
 
-    IBuildingState buildingState;
+    oldIBuildingState buildingState;
 
 
     private GridData basePropData, levelPropData;
     private Vector3Int lastDetectedPosition = Vector3Int.zero;
-    [SerializeField] private ObjectPlacer objectPlacer;
+    [SerializeField] private oldObjectPlacer objectPlacer;
 
     private void Start()
     {
@@ -54,7 +54,6 @@ public class PlacementSystem : MonoBehaviour
         gridVisualization.SetActive(true);
         inputManager.OnClicked += PlaceStructure;
         inputManager.OnExit += StopPlacement;
-        inputManager.OnRotate += RotateStructure;
 
     }
 
@@ -77,12 +76,6 @@ public class PlacementSystem : MonoBehaviour
 
     }
 
-    private void RotateStructure(int dir)
-    {
-
-    }
-
-
     private void StopPlacement()
     {
         if (buildingState == null) { return; }
@@ -90,7 +83,6 @@ public class PlacementSystem : MonoBehaviour
         buildingState.EndState();
         inputManager.OnClicked -= PlaceStructure;
         inputManager.OnExit -= StopPlacement;
-        inputManager.OnRotate -= RotateStructure;
         lastDetectedPosition = Vector3Int.zero;
         buildingState = null;
     }

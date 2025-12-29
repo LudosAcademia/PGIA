@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-using Unity.VisualScripting;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -8,20 +8,22 @@ using UnityEngine.InputSystem;
 public class InputManager : MonoBehaviour
 {
     [SerializeField] private Transform cameraPivot;
+    [SerializeField] private CinemachineCamera vCam;
+    [SerializeField] private CinemachineOrbitalFollow vCamOrbitalFollow;
+    [SerializeField] private CinemachineInputAxisController vCamAxisController;
     private Transform cameraPivotCache;
 
     [SerializeField] private InputSystem inputSystem;
     [SerializeField] private Camera mainCamera;
-
+    [SerializeField] private float zoomSpeed, minZoom, maxZoom;
     private Vector3 lastPosition;
 
     [SerializeField] private LayerMask placementLayerMask;
 
     public event Action OnClicked, OnExit;
-    public event Action<int> OnRotate;
 
     private bool enter, exit = false;
-
+    private bool toggleVirtualCamera = false;
     private void Awake()
     {
         inputSystem = new InputSystem();
@@ -31,58 +33,159 @@ public class InputManager : MonoBehaviour
     private void OnEnable()
     {
         inputSystem.PlacementInput.Enable();
-        inputSystem.PlacementInput.MouseClick.started += MouseClicked;
+        inputSystem.PlacementInput.MouseClick.started += MouseClickedStarted;
+        inputSystem.PlacementInput.MouseClick.canceled += MouseClickedEnded;
         inputSystem.PlacementInput.Escape.started += EspaceClicked;
-        inputSystem.PlacementInput.RotateLeft.started += RotatePropLeft;
-        inputSystem.PlacementInput.RotateRight.started += RotatePropRight;
+
 
     }
 
     private void OnDisable()
     {
         inputSystem.PlacementInput.Disable();
-        inputSystem.PlacementInput.MouseClick.started -= MouseClicked;
+        inputSystem.PlacementInput.MouseClick.started -= MouseClickedStarted;
+        inputSystem.PlacementInput.MouseClick.canceled -= MouseClickedEnded;
+
         inputSystem.PlacementInput.Escape.started -= EspaceClicked;
-        inputSystem.PlacementInput.RotateLeft.started -= RotatePropLeft;
-        inputSystem.PlacementInput.RotateRight.started -= RotatePropRight;
+
+    }
+
+    private void ZoomCamera()
+    {
+        Vector2 scroll = inputSystem.PlacementInput.ZoomCamera.ReadValue<Vector2>();
+        if (scroll.y != 0)
+        {
+            Debug.Log(Mathf.Clamp(scroll.y, minZoom, maxZoom));
+
+
+            if (scroll.y == 1)
+            {
+                float currentRad = vCamOrbitalFollow.Radius;
+                float nextRad = currentRad + scroll.y;
+                if (nextRad < maxZoom)
+                {
+                    vCamOrbitalFollow.Radius += scroll.y;
+                }
+            }
+
+            if (scroll.y == -1)
+            {
+                float currentRad = vCamOrbitalFollow.Radius;
+                float nextRad = currentRad + scroll.y;
+                if (nextRad > minZoom)
+                {
+                    vCamOrbitalFollow.Radius += scroll.y;
+                }
+            }
+
+            //vCamOrbitalFollow.Radius = Mathf.Clamp(scroll.y, minZoom, maxZoom);
+
+        }
+
+    }
+
+    private void MoveCamera()
+    {
+
+        if (toggleVirtualCamera)
+        {
+            vCamAxisController.enabled = true;
+        }
+        else
+        {
+            vCamAxisController.enabled = false;
+
+        }
+    }
+
+    public void PointCamera(Vector3 pos)
+    {
+        Camera.main.transform.LookAt(pos);
+    }
+
+    public void SetCameraTarget(Transform target)
+    {
+        vCam.Target.TrackingTarget = target;
     }
 
 
-    private void MouseClicked(InputAction.CallbackContext context)
+    private void Update()
     {
-        MouseInput(0);
-         //enter = true;
+        ZoomCamera();
+        MoveCamera();
+    }
+
+    private void MouseClickedStarted(InputAction.CallbackContext context)
+    {
+        if (!IsMouseOnGrid())
+        {
+            toggleVirtualCamera = true;
+        }
+        MouseClicked();
+        //enter = true;
         //Debug.Log("Mouse Clicked");
     }
 
+    private void MouseClickedEnded(InputAction.CallbackContext context)
+    {
+        toggleVirtualCamera = false;
+        //enter = true;
+        //Debug.Log("Mouse Clicked");
+    }
+
+
     private void EspaceClicked(InputAction.CallbackContext context)
     {
-        MouseInput(1);
 
         //exit = true;
         //Debug.Log("Mouse Pressed");
     }
 
-    private void RotatePropLeft(InputAction.CallbackContext context)
+    private void MouseClicked()
     {
-        RotatePropInput(0);
+        OnClicked?.Invoke();
     }
 
-    private void RotatePropRight(InputAction.CallbackContext context)
-    {
-        RotatePropInput(1);
+    public bool IsPointerOverUI() => EventSystem.current.IsPointerOverGameObject();
 
+    public Vector3 GetSelectedMapPosition()
+    {
+        Vector3 mousePos = Mouse.current.position.ReadValue();
+        mousePos.z = mainCamera.nearClipPlane; //dont select objects that are not rendered by camera
+        Ray ray = mainCamera.ScreenPointToRay(mousePos);
+        RaycastHit hit;
+        //Debug.Log("Hit point: " + Physics.Raycast(ray, out hit, 100));
+        if (Physics.Raycast(ray, out hit, 100, placementLayerMask))
+        {
+            lastPosition = hit.point;
+        }
+
+        return lastPosition;
     }
 
-    private void RotatePropInput(int rot)
+    public bool IsMouseOnGrid()
     {
+        Vector3 mousePos = Mouse.current.position.ReadValue();
+        mousePos.z = mainCamera.nearClipPlane; //dont select objects that are not rendered by camera
+        Ray ray = mainCamera.ScreenPointToRay(mousePos);
+        RaycastHit hit;
+        //Debug.Log("Hit point: " + Physics.Raycast(ray, out hit, 100));
+        if (Physics.Raycast(ray, out hit, 100, placementLayerMask))
+        {
+            return true;
+        }
 
-        OnRotate?.Invoke(rot);
-
+        return false;
     }
 
+}
+
+/*
+ * 
+ * 
     private void MouseInput(int con)
     {
+
         if (con == 0)
         {
             OnClicked?.Invoke();
@@ -95,61 +198,18 @@ public class InputManager : MonoBehaviour
         }
     }
 
+ * 
+ *             if (vCamOrbitalFollow.Radius > minZoom && vCamOrbitalFollow.Radius < maxZoom)
+            {
+            }
 
-    public void ZoomCamera(float zoom)
-    {
-        mainCamera.transform.position =
-        Vector3.MoveTowards(mainCamera.transform.position, cameraPivotCache.transform.position, zoom);
-    }
-
-
-    public void MovePlatform(int dir)
-    {
-        float increament = 1;
-        switch (dir)
+        if (scroll.y != 0)
         {
-            case 0: //left
-                cameraPivot.position += new Vector3(-increament, 0, 0);
-                break;
-            case 1: //right
-                cameraPivot.position += new Vector3(increament, 0, 0);
-                break;
-            case 2: //up
-                cameraPivot.position += new Vector3(0, 0, increament);
-                break;
-            case 3: //down
-                cameraPivot.position += new Vector3(0, 0, -increament);
-                break;
-
+            Vector3 offset = vCamOrbitalFollow.TargetOffset;
+            offset.z = Mathf.Clamp(offset.z - scroll.y * zoomSpeed, minZoom, maxZoom);
+            vCamOrbitalFollow.TargetOffset = offset;
         }
-
-    }
-
-    public void RotateCamera(int dir)
-    {
-        cameraPivot.Rotate(0, dir, 0);
-    }
-
-    public bool IsPointerOverUI() => EventSystem.current.IsPointerOverGameObject();
-
-
-    public Vector3 GetSelectedMapPosition()
-    {
-        Vector3 mousePos = Mouse.current.position.ReadValue();
-        mousePos.z = mainCamera.nearClipPlane; //dont select objects that are not rendered by camera
-        Ray ray = mainCamera.ScreenPointToRay(mousePos);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 100, placementLayerMask))
-        {
-            lastPosition = hit.point;
-        }
-
-        return lastPosition;
-    }
-
-}
-
-/*
+ * 
  
      private void Update()
     {

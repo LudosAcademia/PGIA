@@ -4,33 +4,37 @@ public class SelectState : ISelectionState
 {
     Grid grid;
     PreviewSystem previewSystem;
+    PlaygroundGrid gridData;
     public int selectedObjectIndex = -1;
 
-    public SelectState(Grid grid, PreviewSystem previewSystem)
+    public SelectState(Grid grid, PreviewSystem previewSystem, PlaygroundGrid gridData)
     {
         this.grid = grid;
         this.previewSystem = previewSystem;
+        this.gridData = gridData;
 
         this.previewSystem.StartShowingCursor(Vector2Int.one);
-
+        this.previewSystem.SetCursorColor(Color.white);
     }
+
 
     public void EndState()
     {
-        previewSystem.StopShowingPreview();
+        //previewSystem.StopShowingPreview();
     }
 
     public void OnAction(Vector3Int gridPosition)
     {
-        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), false);
+        //previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), false);
         Debug.Log("Selected Pos in Grid: " + gridPosition);
     }
 
     public void UpdateState(Vector3Int gridPosition)
     {
-        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), true);
+        //previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), true);
+        previewSystem.UpdateCursor(gridPosition);
     }
-}
+ }
 
 
 /*

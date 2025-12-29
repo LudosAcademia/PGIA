@@ -1,23 +1,23 @@
 using UnityEngine;
 
-public class PlacementState : IBuildingState
+public class PlacementState : oldIBuildingState
 {
     private int selectedObjectIndex = -1;
     int ID;
     Grid grid;
-    PreviewSystem previewSystem;
+    oldPreviewSystem previewSystem;
     ObjectsDatabase database;
     GridData basePropData;
     GridData levelPropData;
-    ObjectPlacer objectPlacer;
+    oldObjectPlacer objectPlacer;
 
     public PlacementState(int iD,
                           Grid grid,
-                          PreviewSystem previewSystem,
+                          oldPreviewSystem previewSystem,
                           ObjectsDatabase database,
                           GridData basePropData,
                           GridData levelPropData,
-                          ObjectPlacer objectPlacer)
+                          oldObjectPlacer objectPlacer)
     {
         ID = iD;
         this.grid = grid;
@@ -27,18 +27,6 @@ public class PlacementState : IBuildingState
         this.levelPropData = levelPropData;
         this.objectPlacer = objectPlacer;
 
-
-        selectedObjectIndex = database.objectData.FindIndex(data => data.ID == ID);
-        if (selectedObjectIndex > -1)
-        {
-            //cellIndicator.SetActive(true);
-            previewSystem.StartShowingPlacementPreview(database.objectData[selectedObjectIndex].Prefab,
-                database.objectData[selectedObjectIndex].Size);
-        }
-        else
-        {
-            throw new System.Exception($"No Object with ID {iD}");
-        }
 
 
     }
@@ -57,18 +45,13 @@ public class PlacementState : IBuildingState
 
         int index = objectPlacer.PlaceObject(database.objectData[selectedObjectIndex].Prefab, grid.CellToWorld(gridPosition), selectedObjectIndex);
 
-        GridData selectedData = database.objectData[selectedObjectIndex].PropLevel == PropLevel.Base ? basePropData : levelPropData;
-        selectedData.AddObject(gridPosition,
-            database.objectData[selectedObjectIndex].Size,
-            database.objectData[selectedObjectIndex].ID,
-            index);
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), false);
     }
 
     private bool CheckPlacementValidity(Vector3Int gridPosition, int selectedObjectIndex)
     {
         GridData selectedData = database.objectData[selectedObjectIndex].PropLevel == PropLevel.Base ? basePropData : levelPropData;
-        return selectedData.CanPlaceObjectAt(gridPosition, database.objectData[selectedObjectIndex].Size);
+        return selectedData.CanPlaceObjectAt(gridPosition, Vector2Int.one);
     }
 
     public void UpdateState(Vector3Int gridPosition)
@@ -80,9 +63,25 @@ public class PlacementState : IBuildingState
 }
 
 /*
- 
+         selectedObjectIndex = database.objectData.FindIndex(data => data.ID == ID);
+        if (selectedObjectIndex > -1)
+        {
+            //cellIndicator.SetActive(true);
+            previewSystem.StartShowingPlacementPreview(database.objectData[selectedObjectIndex].Prefab,
+                database.objectData[selectedObjectIndex].Size);
+        }
+        else
+        {
+            throw new System.Exception($"No Object with ID {iD}");
+        }
 
 
+
+        GridData selectedData = database.objectData[selectedObjectIndex].PropLevel == PropLevel.Base ? basePropData : levelPropData;
+        selectedData.AddObject(gridPosition,
+            database.objectData[selectedObjectIndex].Size,
+            database.objectData[selectedObjectIndex].ID,
+            index);
 
 
     public void EndState()

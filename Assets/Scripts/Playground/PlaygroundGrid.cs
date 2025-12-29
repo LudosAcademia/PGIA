@@ -2,29 +2,40 @@ using UnityEngine;
 
 public class PlaygroundGrid
 {
-    private GridTile[,] gridTiles;
+    private GridTile[,] gridTilesBase;
+    private GridTile[,] gridTilesLevel;
+
     private int gridSize;
 
     public int GridSize { get => gridSize; set => gridSize = value; }
+    public GridTile[,] GridTilesBase { get => gridTilesBase; set => gridTilesBase = value; }
+    public GridTile[,] GridTilesLevel { get => gridTilesLevel; set => gridTilesLevel = value; }
 
     public PlaygroundGrid(int size)
     {
-        gridTiles = new GridTile[size, size];
+        gridTilesBase = new GridTile[size, size];
+        gridTilesLevel = new GridTile[size, size];
         gridSize = size;
         for (int i = 0; i < size; i++)
         {
             for (int j = 0; j < size; j++)
             {
-                gridTiles[i, j] = new();
-                gridTiles[i, j].x = i;
-                gridTiles[i, j].z = j;
-                gridTiles[i, j].contain = "empty";
-                gridTiles[i, j].containId = -1;
+                gridTilesBase[i, j] = new();
+                gridTilesBase[i, j].x = i;
+                gridTilesBase[i, j].z = j;
+                gridTilesBase[i, j].contain = "empty";
+                gridTilesBase[i, j].containId = -1;
+
+                gridTilesLevel[i, j] = new();
+                gridTilesLevel[i, j].x = i;
+                gridTilesLevel[i, j].z = j;
+                gridTilesLevel[i, j].contain = "empty";
+                gridTilesLevel[i, j].containId = -1;
             }
         }
     }
 
-    public string GetTileContain(int index)
+    public string GetTileContain(int index, GridTile[,] grid)
     {
         int iterate = 0;
         for (int i = 0; i < gridSize; i++)
@@ -33,7 +44,7 @@ public class PlaygroundGrid
             {
                 if (index == iterate)
                 {
-                    return gridTiles[i, j].contain;
+                    return grid[i, j].contain;
                 }
                 iterate++;
             }
@@ -41,7 +52,7 @@ public class PlaygroundGrid
         return null;
     }
 
-    public int[] GetTileCord(int index)
+    public int[] GetTileCord(int index, GridTile[,] grid)
     {
         int iterate = 0;
         for (int i = 0; i < gridSize; i++)
@@ -60,7 +71,7 @@ public class PlaygroundGrid
     }
 
 
-    public void SetTileContain(int index, string contain)
+    public void SetTileContain(int index, string contain, GridTile[,] grid)
     {
         int iterate = 0;
         for (int i = 0; i < gridSize; i++)
@@ -69,14 +80,29 @@ public class PlaygroundGrid
             {
                 if (index == iterate)
                 {
-                    gridTiles[i, j].contain = contain;
+                    grid[i, j].contain = contain;
                 }
                 iterate++;
             }
         }
     }
 
+    
 
+}
+
+
+public class GridTile
+{
+    public int x;
+    public int z;
+    public string contain;
+    public int containId;
+
+}
+
+/*
+ 
     public void PlaceTile(int index, string contain)
     {
         if (GetTileContain(index) == "empty")
@@ -94,15 +120,5 @@ public class PlaygroundGrid
         SetTileContain(index, "empty");
     }
 
-
-}
-
-
-public class GridTile
-{
-    public int x;
-    public int z;
-    public string contain;
-    public int containId;
-
-}
+ 
+ */

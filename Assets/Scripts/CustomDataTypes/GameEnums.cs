@@ -6,4 +6,11 @@ namespace GameEnums
         EditState,
         BuildState
     }
+
+    public enum TileLevel
+    {
+        Base,
+        Level
+
+    }
 }

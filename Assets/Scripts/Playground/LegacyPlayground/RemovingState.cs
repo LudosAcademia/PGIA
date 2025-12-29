@@ -1,20 +1,20 @@
 using UnityEngine;
 
-public class RemovingState : IBuildingState
+public class RemovingState : oldIBuildingState
 {
     private int gameObjectIndex = -1;
     Grid grid;
-    PreviewSystem previewSystem;
+    oldPreviewSystem previewSystem;
     GridData basePropData;
     GridData levelPropData;
-    ObjectPlacer objectPlacer;
+    oldObjectPlacer objectPlacer;
 
     public RemovingState(Grid grid,
-                         PreviewSystem previewSystem,
+                         oldPreviewSystem previewSystem,
                          GridData basePropData,
                          GridData levelPropData,
                          
-                         ObjectPlacer objectPlacer)
+                         oldObjectPlacer objectPlacer)
     {
         this.grid = grid;
         this.previewSystem = previewSystem;

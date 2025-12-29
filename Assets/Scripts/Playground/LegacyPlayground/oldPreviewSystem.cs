@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEngine.UIElements;
 
-public class PreviewSystem : MonoBehaviour
+public class oldPreviewSystem : MonoBehaviour
 {
     [SerializeField] private float previewYOffset = 0.06f;
     [SerializeField] private GameObject cellIndicator;

@@ -1015,22 +1015,13 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "RotateLeft",
-                    "type": "Button",
-                    "id": "93adb6ae-7cc2-4f75-adc8-303c4891728d",
-                    "expectedControlType": "",
+                    "name": "ZoomCamera",
+                    "type": "Value",
+                    "id": "fa210e6d-68dd-449d-a605-a5ddb9e0b6c5",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "RotateRight",
-                    "type": "Button",
-                    "id": "5debefab-2a9a-4dcb-8bfa-30160a1c1800",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -1058,23 +1049,12 @@
                 },
                 {
                     "name": "",
-                    "id": "40796d63-129d-4f42-973b-98f8d214f513",
-                    "path": "<Keyboard>/q",
+                    "id": "594164bc-4cf4-4b8b-8713-e8926aff9d59",
+                    "path": "<Mouse>/scroll",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RotateLeft",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "7bddd621-93e7-48d1-83d8-968a3802804e",
-                    "path": "<Keyboard>/e",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "RotateRight",
+                    "action": "ZoomCamera",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

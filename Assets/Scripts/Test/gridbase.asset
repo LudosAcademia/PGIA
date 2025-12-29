@@ -9,9 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 933b09bf8515afb4892d8a85953348fa, type: 3}
-  m_Name: ConfigSetup
-  m_EditorClassIdentifier: Assembly-CSharp::ConfigSetup
-  production: 0
-  productionFilePath: 
-  testFilePath: 
+  m_Script: {fileID: 0}
+  m_Name: gridbase
+  m_EditorClassIdentifier: Assembly-CSharp::ScriptableGridConfig
+  Type: 0
+  Layout: 0
+  GrassPrefab: {fileID: 0}
+  ForestPrefab: {fileID: 0}
+  CellSize: {x: 1, y: 1, z: 1}
+  GridSwizzle: 0
