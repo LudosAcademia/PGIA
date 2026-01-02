@@ -2,7 +2,7 @@ namespace GameEnums
 {
     public enum ReturnState
     {
-        SelectionState,
+        CreationState,
         EditState,
         BuildState
     }
@@ -13,4 +13,19 @@ namespace GameEnums
         Level
 
     }
+    public enum InteractType
+    {
+        Actor,
+        Input,
+        Output,
+        Event,
+        None
+    }
+
+    public enum PropLevel
+    {
+        Base,
+        Level
+    }
+
 }

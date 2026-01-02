@@ -5,10 +5,12 @@ using System.Collections.Generic;
 public class PlaygroundData
 {
     public bool delete = false;
+    public bool update = false;
     public int id;
     public string plygrd_name;
     public string plygrd_desc;
-    public List<TileData> tiles = new();
+    public List<TileDataArray> tilesArray;
+
     public int plygrd_size;
 
 }

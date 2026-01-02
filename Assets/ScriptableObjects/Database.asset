@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Database
   m_EditorClassIdentifier: Assembly-CSharp::ObjectsDatabase
   objectData:
-  - <Name>k__BackingField: Chair
-    <ID>k__BackingField: 0
-    <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: 7ff30ae1864b33d4c83dc0b9e57b9a92, type: 3}
-    <Interaction>k__BackingField: 0
-    <PropLevel>k__BackingField: 1
   - <Name>k__BackingField: Floor
-    <ID>k__BackingField: 1
+    <ID>k__BackingField: 0
     <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: 7a86f95bf7345a34aab4e51989a799ef, type: 3}
-    <Interaction>k__BackingField: 0
-    <PropLevel>k__BackingField: 0
+    <Interaction>k__BackingField: 4
+    <TileLevel>k__BackingField: 0
+  - <Name>k__BackingField: Chair
+    <ID>k__BackingField: 1
+    <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: 7ff30ae1864b33d4c83dc0b9e57b9a92, type: 3}
+    <Interaction>k__BackingField: 4
+    <TileLevel>k__BackingField: 1

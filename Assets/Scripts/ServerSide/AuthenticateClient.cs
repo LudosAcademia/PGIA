@@ -145,8 +145,7 @@ public class AuthenticateClient : MonoBehaviour
         userDetailText.text = "User Name: " + data.currentUser.name
             + "\n Current Playground: " + data.currentUser.curr_ply_index
             + "\n Playgrounds: " + data.currentUser.playgrounds.Count
-            + "\n Tiles: " + data.currentUser.playgrounds[data.currentUser.curr_ply_index].tiles.Count;
-
+            + "\n Tiles: " + data.currentUser.playgrounds[data.currentUser.curr_ply_index].tilesArray;
     }
 
 

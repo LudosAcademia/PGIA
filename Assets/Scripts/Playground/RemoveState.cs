@@ -1,0 +1,45 @@
+using GameEnums;
+using UnityEngine;
+
+public class RemoveState : IBuildingState
+{
+    PreviewSystem previewSystem;
+    PlaygroundGrid gridData;
+    ObjectManipulator objectPlacer;
+
+    public RemoveState(PreviewSystem previewSystem, PlaygroundGrid gridData, ObjectManipulator objectPlacer)
+    {
+        this.previewSystem = previewSystem;
+        this.gridData = gridData;
+        this.objectPlacer = objectPlacer;
+
+        this.previewSystem.StartShowingCursor(Vector2Int.one);
+        this.previewSystem.SetCursorColor(Color.red);
+
+    }
+
+    void IBuildingState.OnDotAction(Vector3Int gridPosition, int objectId, string layer)
+    {
+        if (!CheckValidity(gridData, gridPosition.x, gridPosition.z, layer))
+        {
+            objectPlacer.RemoveObject(gridPosition, layer);
+        }
+        else
+        {
+            Debug.Log("There is nothing to remove");
+        }
+    }
+
+
+    void IBuildingState.UpdateState(Vector3Int gridPosition)
+    {
+        previewSystem.UpdateCursor(gridPosition);
+    }
+
+
+    private bool CheckValidity(PlaygroundGrid gridData, int x, int z, string layer)
+    {
+        return gridData.gridLayers[layer][x, z].containId == -1;
+    }
+
+}

@@ -26,7 +26,7 @@ public class DebugManager : MonoBehaviour
 
     private void Start()
     {
-        GenerateDummyData(2, 100);
+        //GenerateDummyData(2, 100);
     }
 
     public void PrintData()
@@ -53,6 +53,12 @@ public class DebugManager : MonoBehaviour
         dataText.text = token;
     }
 
+
+}
+
+
+/*
+ 
     public void GenerateDummyData(int numPlay, int numTiles)
     {
         GameData gameData = new GameData();
@@ -69,17 +75,17 @@ public class DebugManager : MonoBehaviour
             newPlayground.id = i;
             newPlayground.plygrd_name = "name " + i;
             newPlayground.plygrd_desc = "description " + i;
-            newPlayground.tiles = new List<TileData>();
+            newPlayground.plygrd_size = numTiles;
+            newPlayground.tiles = new TileData[numTiles];
+            newPlayground.tiles_level = new TileData[numTiles];
+
             for (int j = 0; j < numTiles; j++)
             {
                 TileData newTile = new TileData();
-                newTile.tile_contain = "empty";
                 newTile.tile_index = j;
-                newTile.tile_pos_x = UnityEngine.Random.Range(1, 100);
-                newTile.tile_pos_y = UnityEngine.Random.Range(1, 100);
-                newTile.tile_pos_z = UnityEngine.Random.Range(1, 100);
                 newTile.tile_rot_y = UnityEngine.Random.Range(1, 100);
-                newPlayground.tiles.Add(newTile);
+                newPlayground.tiles[i] = newTile;
+                newPlayground.tiles_level[i] = newTile;
             }
 
             gameData.currentUser.playgrounds.Add(newPlayground);
@@ -90,5 +96,7 @@ public class DebugManager : MonoBehaviour
 
     }
 
-
-}
+ 
+ 
+ 
+ */

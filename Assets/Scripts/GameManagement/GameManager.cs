@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] public bool debug = false;
     private GameData gameData;
 
     public static GameManager Instance { get; set; }

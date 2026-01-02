@@ -5,6 +5,8 @@ public class PreviewSystem : MonoBehaviour
 
     [SerializeField] private float previewYOffset = 0.06f;
     [SerializeField] private GameObject cellIndicator;
+    [SerializeField] private GameObject selectedIndicatorPrefab;
+    private GameObject createdHighlight;
     private GameObject previewObject;
 
     [SerializeField] private Material previewMaterialsPrefab;
@@ -17,6 +19,21 @@ public class PreviewSystem : MonoBehaviour
         previewMaterialInstance = new Material(previewMaterialsPrefab);
         cellIndicator.gameObject.SetActive(false);
         cellIndicatorRenderer = cellIndicator.GetComponentInChildren<Renderer>();
+    }
+
+    public void StartHighlightSelectedTile(Vector3Int position)
+    {
+        if (createdHighlight == null)
+        {
+            createdHighlight = Instantiate(selectedIndicatorPrefab);
+        }
+        createdHighlight.transform.position = position;
+    }
+
+    public void StopHighlightSelectedTile()
+    {
+        Destroy(createdHighlight);
+        createdHighlight = null;
     }
 
     public void StartShowingCursor(Vector2Int size)

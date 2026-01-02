@@ -2,14 +2,14 @@
 
 public class SelectState : ISelectionState
 {
-    Grid grid;
     PreviewSystem previewSystem;
     PlaygroundGrid gridData;
+    private GameObject currentSelectedObject;
+
     public int selectedObjectIndex = -1;
 
-    public SelectState(Grid grid, PreviewSystem previewSystem, PlaygroundGrid gridData)
+    public SelectState(PreviewSystem previewSystem, PlaygroundGrid gridData)
     {
-        this.grid = grid;
         this.previewSystem = previewSystem;
         this.gridData = gridData;
 
@@ -21,12 +21,25 @@ public class SelectState : ISelectionState
     public void EndState()
     {
         //previewSystem.StopShowingPreview();
+        previewSystem.StopHighlightSelectedTile();
     }
 
-    public void OnAction(Vector3Int gridPosition)
+    public void OnAction(Vector3Int gridPosition, string layer, GameObject selectedObject)
     {
         //previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), false);
         Debug.Log("Selected Pos in Grid: " + gridPosition);
+        previewSystem.StartHighlightSelectedTile(gridPosition);
+
+        if (gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId != -1)
+        {
+            Debug.Log("Grid Base: " + gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId);
+            currentSelectedObject = selectedObject;
+        }
+        else
+        {
+            Debug.Log("Grid Base: empty");
+        }
+
     }
 
     public void UpdateState(Vector3Int gridPosition)
@@ -34,7 +47,7 @@ public class SelectState : ISelectionState
         //previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), true);
         previewSystem.UpdateCursor(gridPosition);
     }
- }
+}
 
 
 /*

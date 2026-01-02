@@ -7,7 +7,6 @@ public class GameData
     public UserData currentUser = new();
     public string userToken;
     public GameConfig gameConfig = new();
-    public List<PlaygroundData> sessionPlaygrounds = new();
 }
 
 

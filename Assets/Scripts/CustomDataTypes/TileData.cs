@@ -3,14 +3,26 @@ using System;
 [Serializable]
 public class TileData
 {
-    public int tile_index;
-    public string tile_contain = "empty";
-
-    public int tile_pos_x = 0;
-    public int tile_pos_y = 0;
-    public int tile_pos_z = 0;
-
+    public int tile_index = -1;
+    public int tile_contain_id = 0;
     public int tile_rot_y = 0;
+
+    public TileData()
+    {
+    }
+
+    public TileData(int tile_index, int tile_contain_id, int tile_rot_y)
+    {
+        this.tile_index = tile_index;
+        this.tile_contain_id = tile_contain_id;
+        this.tile_rot_y = tile_rot_y;
+    }
+}
+
+public class TileDataArray
+{
+    public string layer;
+    public TileData[] tiles;
 
 }
 

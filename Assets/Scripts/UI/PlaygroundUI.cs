@@ -1,14 +1,18 @@
+using GameEnums;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
-using GameEnums;
+
 public class PlaygroundUI : MonoBehaviour
 {
     [SerializeField] private GameObject createPlaygroundPanel;
     [SerializeField] private GameObject viewPlaygroundPanel;
     [SerializeField] private Transform viewPlaygroundContent;
+
+
     [SerializeField] private GameObject buttonPrefabPlaygroundView;
+
+
     [SerializeField] private GameObject emptyPlaygroundsText;
     [SerializeField] private GameObject selectedPlaygroundsbuttons;
     [SerializeField] private GameObject serverMessageGameObject;
@@ -19,27 +23,25 @@ public class PlaygroundUI : MonoBehaviour
     [SerializeField] private GameObject noSelectedPlaygroundsText;
     [SerializeField] private GameObject creationPanel;
     [SerializeField] private GameObject editPanel;
+    [SerializeField] private GameObject selectionPanel;
+    [SerializeField] private GameObject testingPanel;
+    [SerializeField] private GameObject buildingPanel;
+    [SerializeField] private GameObject toolsPanel;
+    [Space(10)]
+
+    [SerializeField] private TMP_Dropdown layerDropdownMenu;
+
+    [Header("Default Header Name: ")]
     [SerializeField] private string gameTitle = "G.I.A.";
+    private string subjectHeaderText;
+    [Space(10)]
+
+    //[SerializeField] private PlaygroundManager playgroundManager;
+
     private string username;
-    private ReturnState returnButtonState = ReturnState.SelectionState;
-    private int selectedPlaygroundIndex = -1;
+    private ReturnState returnButtonState = ReturnState.CreationState;
     private List<GameObject> playgroundViewButtons = new();
     List<PlaygroundData> playgroundsData = new();
-
-    public int SelectedPlaygroundIndex { get => selectedPlaygroundIndex; set => selectedPlaygroundIndex = value; }
-
-    private void Start()
-    {
-        if (GameManager.Instance.GameData.currentUser.name == null)
-        {
-            CreateDummyData();
-        }
-        username = GameManager.Instance.GameData.currentUser.name;
-        SetHeader(gameTitle, username);
-        playgroundsData = GameManager.Instance.GetGameData().currentUser.playgrounds;
-        AddAllPlaygrounds();
-    }
-
 
     private void OnEnable()
     {
@@ -50,10 +52,14 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnEndPlaygroundCreate += CloseCreatePlaygroundPanel;
         PlaygroundManager.OnEndPlaygroundCreate += OpenViewPlaygroundPanel;
         CreatePlayground.OnPlaygroundCreated += OpenBlockPanel;
-        ServerClient.PlaygroundSaved += OpenServerMessage;
         ServerClient.PlaygroundSaved += AddPlaygroundToView;
 
+        ServerClient.PlaygroundSaved += OpenServerMessageOnCreation;
+        ServerClient.PlaygroundUpdated += OpenServerMessageOnUpdate;
+        ServerClient.PlaygroundDeleted += OpenServerMessageOnDelete;
 
+        GridManager.OnToolChange += SetToolsText;
+        GridManager.OnLayerChange += SetLayersInDropdown;
     }
 
     private void OnDisable()
@@ -64,8 +70,23 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnCancelPlaygroundCreate -= OpenViewPlaygroundPanel;
         PlaygroundManager.OnEndPlaygroundCreate -= CloseCreatePlaygroundPanel;
         PlaygroundManager.OnEndPlaygroundCreate -= OpenViewPlaygroundPanel;
-        ServerClient.PlaygroundSaved += OpenServerMessage;
         ServerClient.PlaygroundSaved -= AddPlaygroundToView;
+
+        ServerClient.PlaygroundSaved -= OpenServerMessageOnCreation;
+        ServerClient.PlaygroundUpdated -= OpenServerMessageOnUpdate;
+        ServerClient.PlaygroundDeleted -= OpenServerMessageOnDelete;
+
+        GridManager.OnToolChange -= SetToolsText;
+        GridManager.OnLayerChange -= SetLayersInDropdown;
+
+    }
+
+    public void PlaygroundUIStart()
+    {
+        username = GameManager.Instance.GameData.currentUser.name;
+        SetHeader(gameTitle, username);
+        playgroundsData = GameManager.Instance.GetGameData().currentUser.playgrounds;
+        AddAllPlaygrounds();
     }
 
     private void OpenCreatePlaygroundPanel()
@@ -83,11 +104,14 @@ public class PlaygroundUI : MonoBehaviour
     private void OpenViewPlaygroundPanel()
     {
         viewPlaygroundPanel.SetActive(true);
+        noSelectedPlaygroundsText.SetActive(true);
+
     }
 
     private void CloseViewPlaygroundPanel()
     {
         viewPlaygroundPanel.SetActive(false);
+        noSelectedPlaygroundsText.SetActive(false);
     }
 
     private void OpenBlockPanel(PlaygroundData none)
@@ -104,6 +128,7 @@ public class PlaygroundUI : MonoBehaviour
     {
         editPanel.SetActive(true);
     }
+
     private void CloseEditPanel()
     {
         editPanel.SetActive(false);
@@ -113,24 +138,33 @@ public class PlaygroundUI : MonoBehaviour
     {
         creationPanel.SetActive(true);
     }
+
     private void CloseCreationPanel()
     {
         creationPanel.SetActive(false);
     }
 
-    private void OpenBuildMenu()
+    public void OpenSelectionPanel()
     {
-
+        selectionPanel.SetActive(true);
     }
 
-    private void CloseBuildMenu()
+    public void OpenBuildingPanel()
     {
-
+        returnButtonState = ReturnState.BuildState;
+        buildingPanel.SetActive(true);
+        toolsPanel.SetActive(true);
     }
 
-    private void ReturnSelectionState()
+    private void CloseBuildingPanel()
     {
-        returnButtonState = ReturnState.SelectionState;
+        buildingPanel.SetActive(false);
+        toolsPanel.SetActive(false);
+    }
+
+    private void ReturnCreationState()
+    {
+        returnButtonState = ReturnState.CreationState;
         SetHeader(gameTitle, username);
         CloseEditPanel();
         OpenCreationPanel();
@@ -138,7 +172,11 @@ public class PlaygroundUI : MonoBehaviour
 
     private void ReturnEditState()
     {
-
+        returnButtonState = ReturnState.EditState;
+        //SetHeader(username, );
+        CloseBuildingPanel();
+        //OpenSelectionPanel();
+        OpenEditPanel();
     }
 
     private void SetHeader(string title, string subject)
@@ -147,16 +185,15 @@ public class PlaygroundUI : MonoBehaviour
         subjectHeader.text = subject;
     }
 
-
     public void GeneralReturnButton()
     {
         Debug.Log("Test Return Button");
         switch (returnButtonState)
         {
-            case ReturnState.SelectionState:
+            case ReturnState.CreationState:
                 break;
             case ReturnState.EditState:
-                ReturnSelectionState();
+                ReturnCreationState();
                 break;
             case ReturnState.BuildState:
                 ReturnEditState();
@@ -164,8 +201,7 @@ public class PlaygroundUI : MonoBehaviour
         }
     }
 
-
-    private void OpenServerMessage(bool result)
+    private void OpenServerMessageOnCreation(bool result)
     {
         serverMessageGameObject.SetActive(true);
         if (result)
@@ -178,6 +214,31 @@ public class PlaygroundUI : MonoBehaviour
         }
     }
 
+    private void OpenServerMessageOnUpdate(bool result)
+    {
+        serverMessageGameObject.SetActive(true);
+        if (result)
+        {
+            serverMessageText.text = "Playground saved successfully!";
+        }
+        else
+        {
+            serverMessageText.text = "Playground save failed due to a Server Error";
+        }
+    }
+
+    private void OpenServerMessageOnDelete(bool result)
+    {
+        serverMessageGameObject.SetActive(true);
+        if (result)
+        {
+            serverMessageText.text = "Playground deleted successfully!";
+        }
+        else
+        {
+            serverMessageText.text = "Playground delete failed due to a Server Error";
+        }
+    }
 
     public void CloseServerMessage()
     {
@@ -207,13 +268,13 @@ public class PlaygroundUI : MonoBehaviour
 
     public void EditPlayground()
     {
-        int index = selectedPlaygroundIndex;
+        int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
         if (index != -1)
         {
             SetHeader(username, playgroundsData[index].plygrd_name);
             OpenEditPanel();
             CloseCreationPanel();
-            Debug.Log("The Selected Playground Id: " + playgroundsData[index].id);
+            //Debug.Log("The Selected Playground Id: " + playgroundsData[index].id);
         }
         returnButtonState = ReturnState.EditState;
     }
@@ -231,6 +292,7 @@ public class PlaygroundUI : MonoBehaviour
     {
         if (result)
         {
+            emptyPlaygroundsText.SetActive(false);
             int lastIndex = GameManager.Instance.GameData.currentUser.playgrounds.Count - 1;
             PlaygroundData plygrd = GameManager.Instance.GetGameData().currentUser.playgrounds[lastIndex];
             Debug.Log("Add to view: " + plygrd.plygrd_name);
@@ -266,6 +328,26 @@ public class PlaygroundUI : MonoBehaviour
         }
     }
 
+
+    private void SetToolsText(string[] tools)
+    {
+        subjectHeaderText = "Layer: " + tools[0] + "\n"
+            + "ObjecId: " + tools[1] + "\n"
+            + "Tool: " + tools[2] + "\n";
+
+        subjectHeader.text = subjectHeaderText;
+    }
+
+    private void SetLayersInDropdown(List<string> layers)
+    {
+        layerDropdownMenu.ClearOptions();
+        layerDropdownMenu.AddOptions(layers);
+        //Transform parent = layerDropdownMenu.transform.GetChild(1).GetChild(0).GetChild(0).transform;
+        //GameObject button = Instantiate(buttonPrefabAddLayer);
+       // button.transform.SetParent(parent, false);
+    }
+
+
     private void SetAllChildren(Transform parent, bool set)
     {
         if (parent.childCount != 0)
@@ -276,30 +358,5 @@ public class PlaygroundUI : MonoBehaviour
             }
         }
     }
-
-    private void CreateDummyData()
-    {
-        GameData gameData = new GameData();
-        gameData.currentUser = new();
-        gameData.currentUser.name = "Test User";
-        gameData.currentUser.curr_ply_index = 0;
-        gameData.currentUser.playgrounds = new();
-        PlaygroundData testPlayground = new();
-        testPlayground.plygrd_name = "TestPlayground";
-        testPlayground.plygrd_desc = "This playground is for testing";
-        testPlayground.tiles = new();
-        testPlayground.plygrd_size = 25;
-
-        for (int i = 0; i < testPlayground.plygrd_size; i++)
-        {
-            TileData newTile = new(); 
-            newTile.tile_index = i;
-            newTile.tile_contain = "empty";
-            testPlayground.tiles.Add(newTile);  
-        }
-        GameManager.Instance.GameData = gameData;
-    }
-
-
 
 }

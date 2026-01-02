@@ -11,7 +11,6 @@ public class InputManager : MonoBehaviour
     [SerializeField] private CinemachineCamera vCam;
     [SerializeField] private CinemachineOrbitalFollow vCamOrbitalFollow;
     [SerializeField] private CinemachineInputAxisController vCamAxisController;
-    private Transform cameraPivotCache;
 
     [SerializeField] private InputSystem inputSystem;
     [SerializeField] private Camera mainCamera;
@@ -20,21 +19,20 @@ public class InputManager : MonoBehaviour
 
     [SerializeField] private LayerMask placementLayerMask;
 
-    public event Action OnClicked, OnExit;
+    public event Action OnClicked, OnExit, OnClickStarted, OnClickEnded;
 
-    private bool enter, exit = false;
     private bool toggleVirtualCamera = false;
+    private bool toggleVirtualCameraControls = false;
+
     private void Awake()
     {
         inputSystem = new InputSystem();
-        cameraPivotCache = cameraPivot;
     }
 
     private void OnEnable()
     {
         inputSystem.PlacementInput.Enable();
-        inputSystem.PlacementInput.MouseClick.started += MouseClickedStarted;
-        inputSystem.PlacementInput.MouseClick.canceled += MouseClickedEnded;
+        SubscribeMouseInput();
         inputSystem.PlacementInput.Escape.started += EspaceClicked;
 
 
@@ -43,9 +41,7 @@ public class InputManager : MonoBehaviour
     private void OnDisable()
     {
         inputSystem.PlacementInput.Disable();
-        inputSystem.PlacementInput.MouseClick.started -= MouseClickedStarted;
-        inputSystem.PlacementInput.MouseClick.canceled -= MouseClickedEnded;
-
+        UnsubscribeMouseInput();
         inputSystem.PlacementInput.Escape.started -= EspaceClicked;
 
     }
@@ -55,7 +51,7 @@ public class InputManager : MonoBehaviour
         Vector2 scroll = inputSystem.PlacementInput.ZoomCamera.ReadValue<Vector2>();
         if (scroll.y != 0)
         {
-            Debug.Log(Mathf.Clamp(scroll.y, minZoom, maxZoom));
+            //Debug.Log(Mathf.Clamp(scroll.y, minZoom, maxZoom));
 
 
             if (scroll.y == 1)
@@ -108,11 +104,14 @@ public class InputManager : MonoBehaviour
         vCam.Target.TrackingTarget = target;
     }
 
-
     private void Update()
     {
-        ZoomCamera();
-        MoveCamera();
+        if (toggleVirtualCameraControls)
+        {
+            ZoomCamera();
+            MoveCamera();
+        }
+
     }
 
     private void MouseClickedStarted(InputAction.CallbackContext context)
@@ -121,6 +120,8 @@ public class InputManager : MonoBehaviour
         {
             toggleVirtualCamera = true;
         }
+        MouseClickStarted();
+
         MouseClicked();
         //enter = true;
         //Debug.Log("Mouse Clicked");
@@ -129,10 +130,10 @@ public class InputManager : MonoBehaviour
     private void MouseClickedEnded(InputAction.CallbackContext context)
     {
         toggleVirtualCamera = false;
+        MouseClickEnded();
         //enter = true;
         //Debug.Log("Mouse Clicked");
     }
-
 
     private void EspaceClicked(InputAction.CallbackContext context)
     {
@@ -144,6 +145,16 @@ public class InputManager : MonoBehaviour
     private void MouseClicked()
     {
         OnClicked?.Invoke();
+    }
+
+    private void MouseClickStarted()
+    {
+        OnClickStarted?.Invoke();
+    }
+
+    private void MouseClickEnded()
+    {
+        OnClickEnded?.Invoke();
     }
 
     public bool IsPointerOverUI() => EventSystem.current.IsPointerOverGameObject();
@@ -176,6 +187,21 @@ public class InputManager : MonoBehaviour
         }
 
         return false;
+    }
+
+
+    public void UnsubscribeMouseInput()
+    {
+        inputSystem.PlacementInput.MouseClick.started -= MouseClickedStarted;
+        inputSystem.PlacementInput.MouseClick.canceled -= MouseClickedEnded;
+        toggleVirtualCameraControls = false;
+    }
+
+    public void SubscribeMouseInput()
+    {
+        inputSystem.PlacementInput.MouseClick.started += MouseClickedStarted;
+        inputSystem.PlacementInput.MouseClick.canceled += MouseClickedEnded;
+        toggleVirtualCameraControls = true;
     }
 
 }

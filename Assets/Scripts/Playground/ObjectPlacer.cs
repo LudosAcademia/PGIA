@@ -1,21 +1,16 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class ObjectPlacer : MonoBehaviour
 {
-
-    [SerializeField] private ObjectsDatabase objectsDatabase;
-    [SerializeField] private Transform gridContainer;
-    public void PlaceObject(Vector3 gridPosition, int objectId)
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
     {
-        int selectedObjectIndex = objectsDatabase.objectData.FindIndex(data => data.ID == objectId);
-        if (selectedObjectIndex > -1)
-        {
-            GameObject newobj = Instantiate(objectsDatabase.objectData[selectedObjectIndex].Prefab);
-            newobj.transform.position = gridPosition;
-            newobj.transform.SetParent(gridContainer);
-        }
-
-
+        
     }
 
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
 }

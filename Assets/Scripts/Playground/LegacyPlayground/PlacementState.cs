@@ -26,9 +26,6 @@ public class PlacementState : oldIBuildingState
         this.basePropData = basePropData;
         this.levelPropData = levelPropData;
         this.objectPlacer = objectPlacer;
-
-
-
     }
 
     public void EndState()
@@ -50,7 +47,8 @@ public class PlacementState : oldIBuildingState
 
     private bool CheckPlacementValidity(Vector3Int gridPosition, int selectedObjectIndex)
     {
-        GridData selectedData = database.objectData[selectedObjectIndex].PropLevel == PropLevel.Base ? basePropData : levelPropData;
+        //database.objectData[selectedObjectIndex].TileLevel == GameEnums.TileLevel.Base ? basePropData :
+        GridData selectedData = levelPropData;
         return selectedData.CanPlaceObjectAt(gridPosition, Vector2Int.one);
     }
 
