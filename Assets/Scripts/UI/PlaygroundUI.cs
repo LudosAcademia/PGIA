@@ -27,9 +27,16 @@ public class PlaygroundUI : MonoBehaviour
     [SerializeField] private GameObject testingPanel;
     [SerializeField] private GameObject buildingPanel;
     [SerializeField] private GameObject toolsPanel;
+    [SerializeField] private GameObject selectedTilePanel;
+    [SerializeField] private GameObject editInfoPanel;
+    [SerializeField] private GameObject editSelectedButtonsPanel;
+
+
+
     [Space(10)]
 
     [SerializeField] private TMP_Dropdown layerDropdownMenu;
+    [SerializeField] private TMP_Dropdown itemDropdownMenu;
 
     [Header("Default Header Name: ")]
     [SerializeField] private string gameTitle = "G.I.A.";
@@ -60,6 +67,11 @@ public class PlaygroundUI : MonoBehaviour
 
         GridManager.OnToolChange += SetToolsText;
         GridManager.OnLayerChange += SetLayersInDropdown;
+        GridManager.OnItemsChange += SetItemsInDropdown;
+        GridManager.OnItemSelected += SetSelectedTile;
+        GridManager.OnItemSelected += ToggleSelectedButtons;
+        GridManager.OnMoveObjectStart += SetInfoPanel;
+
     }
 
     private void OnDisable()
@@ -78,6 +90,10 @@ public class PlaygroundUI : MonoBehaviour
 
         GridManager.OnToolChange -= SetToolsText;
         GridManager.OnLayerChange -= SetLayersInDropdown;
+        GridManager.OnItemsChange -= SetItemsInDropdown;
+        GridManager.OnItemSelected -= SetSelectedTile;
+        GridManager.OnItemSelected -= ToggleSelectedButtons;
+        GridManager.OnMoveObjectStart -= SetInfoPanel;
 
     }
 
@@ -344,8 +360,44 @@ public class PlaygroundUI : MonoBehaviour
         layerDropdownMenu.AddOptions(layers);
         //Transform parent = layerDropdownMenu.transform.GetChild(1).GetChild(0).GetChild(0).transform;
         //GameObject button = Instantiate(buttonPrefabAddLayer);
-       // button.transform.SetParent(parent, false);
+        // button.transform.SetParent(parent, false);
     }
+
+    private void SetItemsInDropdown(ObjectsDatabase items)
+    {
+        List<TMP_Dropdown.OptionData> optionsData = new();
+
+        foreach (var item in items.objectData)
+        {
+            TMP_Dropdown.OptionData option = new();
+            option.text = item.Name;
+            optionsData.Add(option);
+        }
+        itemDropdownMenu.AddOptions(optionsData);
+    }
+
+    private void SetSelectedTile(bool set, string info)
+    {
+        selectedTilePanel.SetActive(set);
+        selectedTilePanel.GetComponentInChildren<TextMeshProUGUI>().text = info;
+    }
+
+    private void SetInfoPanel(bool set, string info)
+    {
+        editInfoPanel.SetActive(set);
+        editInfoPanel.GetComponentInChildren<TextMeshProUGUI>().text = info;
+    }
+
+    private void ToggleSelectedButtons(bool set, string nul)
+    {
+        editSelectedButtonsPanel.SetActive(set);
+    }
+
+}
+
+/*
+ editInfoPanel;
+    [SerializeField] private GameObject editSelectedButtonsPanel;
 
 
     private void SetAllChildren(Transform parent, bool set)
@@ -359,4 +411,4 @@ public class PlaygroundUI : MonoBehaviour
         }
     }
 
-}
+ */

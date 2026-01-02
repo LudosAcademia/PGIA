@@ -4,24 +4,31 @@ public class SelectState : ISelectionState
 {
     PreviewSystem previewSystem;
     PlaygroundGrid gridData;
+    ObjectManipulator objectManipulator;
+
+
     private GameObject currentSelectedObject;
+    private Vector3Int currentSelectedVector;
+    private int currentSelectedObjectId;
 
     public int selectedObjectIndex = -1;
 
-    public SelectState(PreviewSystem previewSystem, PlaygroundGrid gridData)
+    public SelectState(PreviewSystem previewSystem, PlaygroundGrid gridData, ObjectManipulator objectManipulator)
     {
         this.previewSystem = previewSystem;
         this.gridData = gridData;
+        this.objectManipulator = objectManipulator;
 
         this.previewSystem.StartShowingCursor(Vector2Int.one);
         this.previewSystem.SetCursorColor(Color.white);
     }
 
-
     public void EndState()
     {
         //previewSystem.StopShowingPreview();
         previewSystem.StopHighlightSelectedTile();
+
+
     }
 
     public void OnAction(Vector3Int gridPosition, string layer, GameObject selectedObject)
@@ -34,6 +41,7 @@ public class SelectState : ISelectionState
         {
             Debug.Log("Grid Base: " + gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId);
             currentSelectedObject = selectedObject;
+            currentSelectedObjectId = gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId;
         }
         else
         {
@@ -47,6 +55,29 @@ public class SelectState : ISelectionState
         //previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), true);
         previewSystem.UpdateCursor(gridPosition);
     }
+
+    public void OnRotate(Vector3Int gridPosition)
+    {
+        if (currentSelectedObject != null)
+        {
+            objectManipulator.RotateObject(gridPosition, currentSelectedObject);
+        }
+        else
+        {
+            Debug.Log("No Object Selected");
+        }
+    }
+
+    public void OnMoveStart()
+    {
+        objectManipulator.StoreObject(currentSelectedObject);
+    }
+
+    public void OnMoveEnd(Vector3Int gridPosition, string layer)
+    {
+        objectManipulator.MoveObject(currentSelectedVector, gridPosition, currentSelectedObjectId, layer);
+    }
+
 }
 
 

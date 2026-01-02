@@ -5,13 +5,13 @@ public class RemoveState : IBuildingState
 {
     PreviewSystem previewSystem;
     PlaygroundGrid gridData;
-    ObjectManipulator objectPlacer;
+    ObjectManipulator objectManipulator;
 
     public RemoveState(PreviewSystem previewSystem, PlaygroundGrid gridData, ObjectManipulator objectPlacer)
     {
         this.previewSystem = previewSystem;
         this.gridData = gridData;
-        this.objectPlacer = objectPlacer;
+        this.objectManipulator = objectPlacer;
 
         this.previewSystem.StartShowingCursor(Vector2Int.one);
         this.previewSystem.SetCursorColor(Color.red);
@@ -22,7 +22,7 @@ public class RemoveState : IBuildingState
     {
         if (!CheckValidity(gridData, gridPosition.x, gridPosition.z, layer))
         {
-            objectPlacer.RemoveObject(gridPosition, layer);
+            objectManipulator.RemoveObject(gridPosition, layer);
         }
         else
         {
