@@ -28,7 +28,6 @@ public class SelectState : ISelectionState
         //previewSystem.StopShowingPreview();
         previewSystem.StopHighlightSelectedTile();
 
-
     }
 
     public void OnAction(Vector3Int gridPosition, string layer, GameObject selectedObject)
@@ -41,6 +40,7 @@ public class SelectState : ISelectionState
         {
             Debug.Log("Grid Base: " + gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId);
             currentSelectedObject = selectedObject;
+            currentSelectedVector = gridPosition;
             currentSelectedObjectId = gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId;
         }
         else
@@ -70,12 +70,13 @@ public class SelectState : ISelectionState
 
     public void OnMoveStart()
     {
-        objectManipulator.StoreObject(currentSelectedObject);
     }
 
     public void OnMoveEnd(Vector3Int gridPosition, string layer)
     {
-        objectManipulator.MoveObject(currentSelectedVector, gridPosition, currentSelectedObjectId, layer);
+        objectManipulator.MoveObject(currentSelectedVector, gridPosition, currentSelectedObjectId, layer, currentSelectedObject);
+        previewSystem.StartHighlightSelectedTile(gridPosition);
+
     }
 
 }

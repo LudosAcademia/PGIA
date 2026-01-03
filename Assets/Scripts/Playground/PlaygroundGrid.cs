@@ -26,7 +26,7 @@ public class PlaygroundGrid
     public PlaygroundGrid() { }
 
 
-    public GridTile GetTile(int index, int size, string layer)
+    public GridTile GetTileWithIndex(int index, int size, string layer)
     {
         int x = index % size;
         int z = index / size;
@@ -34,7 +34,7 @@ public class PlaygroundGrid
         return currentTileArr[x, z];
     }
 
-    public void SetTile(int index, int size, int containId, int rotY, string layer)
+    public void SetTileWithIndex(int index, int size, int containId, int rotY, string layer)
     {
         int x = index % size;
         int z = index / size;
@@ -52,9 +52,10 @@ public class PlaygroundGrid
 
     }
 
-    public void SetTileContainId(int x, int z, int containId, string layer)
+    public void SetTileWithCord(int x, int z, int containId,int rotY, string layer)
     {
         gridLayers[layer][x, z].containId = containId;
+        gridLayers[layer][x, z].rotY = rotY;
     }
 
     public int GetTileIndex(int x, int z, string layer)

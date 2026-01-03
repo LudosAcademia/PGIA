@@ -61,6 +61,7 @@ public class GridManager : MonoBehaviour
     public string CurrentGridLayer { get => currentGridLayer; set => currentGridLayer = value; }
     public Dictionary<string, GameObject[,]> PlacedGameObjects { get => placedGameObjects; set => placedGameObjects = value; }
     public List<string> GridLayers { get => gridLayers; set => gridLayers = value; }
+    public Grid Grid { get => grid; set => grid = value; }
 
     ISelectionState selectionState;
     IBuildingState buildingState;
@@ -73,7 +74,7 @@ public class GridManager : MonoBehaviour
     private void OnDisable()
     {
         PlaygroundManager.OnStartPlaygroundEdit -= CreateGrid;
-        ClearSelect();
+        ClearBuildTools();
     }
 
     private void CreateGrid(int size, int playgroundIndex)
@@ -121,7 +122,14 @@ public class GridManager : MonoBehaviour
         Debug.Log("Index in GridManager: " + playgroundIndex + "Size in GridManager: " + size);
         int totalSize = GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].plygrd_size;
 
+
+        //Load the Index based Tile Array:
         List<TileDataArray> tileDataArray = GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].tilesArray;
+
+        //Initilize the Grid Objects:
+        //placedGameObjects --> for in game objects
+        //gridLayers --> for storing layers
+        //gridData --> for storing grid data 
         placedGameObjects = new();
         gridLayers = new List<string>();
         gridData = new();
@@ -139,37 +147,48 @@ public class GridManager : MonoBehaviour
                     newGridData[i, j] = new();
                 }
             }
+
+            //Initilize all the layers with empty gameobject arrays:
+            placedGameObjects.Add(item.layer, new GameObject[size, size]);
+
+            //Fill all the data layers
             gridData.gridLayers.Add(item.layer, newGridData);
             for (int i = 0; i < totalSize; i++)
             {
-                //Debug.Log(i + " " + size + " " + item.tiles[i].tile_contain_id + " " + item.tiles[i].tile_rot_y + " " + item.layer);
-                gridData.SetTile(i, size, item.tiles[i].tile_contain_id, item.tiles[i].tile_rot_y, item.layer);
+                Debug.Log(i + " " + size + " " + item.tiles[i].tile_contain_id + " " + item.tiles[i].tile_rot_y + " " + item.layer);
+                gridData.SetTileWithIndex(i, size, item.tiles[i].tile_contain_id, item.tiles[i].tile_rot_y, item.layer);
             }
             //Debug.Log("Get Contain Id: " + gridData.gridLayers[item.layer][0,0].containId);
             //Debug.Log("Grid Data on " + item.layer + ": Null?: " + gridData.gridLayers[item.layer] == null);
         }
 
-        placedGameObjects.Add(gridLayers[gridLayers.Count - 1], new GameObject[size, size]);
 
-        //Load the Grid Objects
-        for (int i = 0; i < size; i++)
+        //Fill the layer gameobjects
+        foreach (var item in gridLayers)
         {
-            for (int j = 0; j < size; j++)
+            for (int i = 0; i < size; i++)
             {
-                foreach (var item in gridLayers)
+                for (int j = 0; j < size; j++)
                 {
+
                     GridTile[,] gridTiles = gridData.gridLayers[item];
+                    Debug.Log("The Layer: " + item + " On Cords: " + i + " / " + j + " The Id: " + gridTiles[i, j].containId + " The Rot: " + gridTiles[i, j]);
+                    
                     int objectIdBase = gridTiles[i, j].containId;
                     currentObjectId = objectIdBase;
+                    currentGridLayer = item;
                     objectManipulator.PlaceObject(new Vector3Int(gridTiles[i, j].x, 0, gridTiles[i, j].z));
+                    //Debug.Log("The Object Rot: " + gridTiles[i, j].rotY);
+                    objectManipulator.SetObjectRotation(new Vector3Int(gridTiles[i, j].x, 0, gridTiles[i, j].z), gridTiles[i, j].rotY, item);
+
                 }
             }
+
         }
 
-        editingPlayground = true;
+        currentGridLayer = gridLayers[0];
         OnLayerChange?.Invoke(gridLayers);
         OnItemsChange?.Invoke(objectsDatabase);
-        SetTools();
     }
 
     public void SaveGrid(int playgroundIndex)
@@ -188,8 +207,8 @@ public class GridManager : MonoBehaviour
             {
                 newTileDataArray.tiles[i] = new TileData();
                 newTileDataArray.tiles[i].tile_index = i;
-                newTileDataArray.tiles[i].tile_contain_id = gridData.GetTile(i, size, item).containId;
-                newTileDataArray.tiles[i].tile_rot_y = gridData.GetTile(i, size, item).rotY;
+                newTileDataArray.tiles[i].tile_contain_id = gridData.GetTileWithIndex(i, size, item).containId;
+                newTileDataArray.tiles[i].tile_rot_y = gridData.GetTileWithIndex(i, size, item).rotY;
             }
 
             tileDataArray.Add(newTileDataArray);
@@ -203,8 +222,14 @@ public class GridManager : MonoBehaviour
     {
         if (editingPlayground)
         {
+            //Debug.Log("YOU CANT GO IN HERE");
             EdittingPlayground();
         }
+    }
+
+    public void TogglePlaygroundUpdate(bool set)
+    {
+        editingPlayground = set;
     }
 
     private void EdittingPlayground()
@@ -231,23 +256,35 @@ public class GridManager : MonoBehaviour
         {
             return;
         }
+    }
 
+    public void BuildingSection()
+    {
+        TogglePlaygroundUpdate(true);
+        GoBuildState();
+    }
+
+    public void EmptyStateSection()
+    {
+        TogglePlaygroundUpdate(false);
+        ClearSelectTools();
+        ClearBuildTools();
+        selectionState = null;
+        buildingState = null;
     }
 
 
     public void GoSelectState()
     {
-        selectionState = new SelectState(previewSystem, gridData, objectManipulator);
+        ClearBuildTools();
         buildingState = null;
-        ClearSelect();
+        selectionState = new SelectState(previewSystem, gridData, objectManipulator);
         inputManager.OnClicked += SelectObject;
-
     }
 
     public void GoBuildState()
     {
-        selectionState.EndState();
-        selectionState = null;
+        ClearSelectTools();
         buildingState = new BuildingState(previewSystem, gridData, objectManipulator);
         SetTools();
         //SelectObject(0);
@@ -255,11 +292,19 @@ public class GridManager : MonoBehaviour
 
     public void GoRemoveState()
     {
-        selectionState.EndState();
-        selectionState = null;
+        ClearSelectTools();
         buildingState = new RemoveState(previewSystem, gridData, objectManipulator);
         SetTools();
         //SelectObject(0);
+    }
+
+    #region ItemControl
+
+    private void GetCurrentObjectId()
+    {
+        //AssignObjectId(itemSelection.value);
+        currentObjectId = itemSelection.value;
+        selectedObjectText.text = "Object Id: " + currentObjectId.ToString();
     }
 
     public void AssignObjectId(int id)
@@ -270,21 +315,10 @@ public class GridManager : MonoBehaviour
         //Debug.Log("Object Chaged: " + currentObjectId + " Level: " + currentTileLevel);
     }
 
-    private void GetCurrentTool()
-    {
-        switch (toolSelection.value)
-        {
-            case 0:
-                SelectDot();
-                break;
-            case 1:
-                SelectBrush();
-                break;
-            case 2:
-                SelectFill();
-                break;
-        }
-    }
+
+    #endregion
+
+    #region LayerControl
 
     public void CreateNewLayer(string layer)
     {
@@ -313,7 +347,6 @@ public class GridManager : MonoBehaviour
         SetTools();
     }
 
-
     private void GetCurrentLayer()
     {
         currentGridLayer = gridLayers[layerSelection.value];
@@ -321,10 +354,9 @@ public class GridManager : MonoBehaviour
         //AssignObjectLayer(layerSelection.value);
     }
 
-    private void GetCurrentObjectId()
-    {
-        AssignObjectId(itemSelection.value);
-    }
+    #endregion
+
+    #region ToolControl
 
     public void SetTools()
     {
@@ -339,32 +371,19 @@ public class GridManager : MonoBehaviour
         OnToolChange?.Invoke(tools);
     }
 
-    public void AssignObjectLayer(int layer)
+    private void GetCurrentTool()
     {
-
-
-        //currentGridLayer = layer == 0 ? TileLevel.Base : TileLevel.Level;
-    }
-
-    private void BuildObject()
-    {
-        if (inputManager.IsMouseOnGrid() && !inputManager.IsPointerOverUI())
+        switch (toolSelection.value)
         {
-            buildingState.OnDotAction(GetGridPos(), currentObjectId, currentGridLayer);
-        }
-    }
-
-    private void BuildAllObjects()
-    {
-        if (inputManager.IsMouseOnGrid() && !inputManager.IsPointerOverUI())
-        {
-            for (int i = 0; i < gridData.GridSize; i++)
-            {
-                for (int j = 0; j < gridData.GridSize; j++)
-                {
-                    buildingState.OnDotAction(new Vector3Int(i, j, 0), currentObjectId, currentGridLayer);
-                }
-            }
+            case 0:
+                SelectDot();
+                break;
+            case 1:
+                SelectBrush();
+                break;
+            case 2:
+                SelectFill();
+                break;
         }
     }
 
@@ -380,7 +399,7 @@ public class GridManager : MonoBehaviour
 
     public void SelectBrush()
     {
-        ClearSelect();
+        ClearBuildTools();
         inputManager.OnClickStarted += BrushToggleStart;
         inputManager.OnClickEnded += BrushToggleEnd;
         currentSelectedTool = "Brush";
@@ -389,27 +408,48 @@ public class GridManager : MonoBehaviour
 
     public void SelectDot()
     {
-        ClearSelect();
+        ClearBuildTools();
         inputManager.OnClicked += BuildObject;
         currentSelectedTool = "Dot";
     }
 
     public void SelectFill()
     {
-        ClearSelect();
+        ClearBuildTools();
         inputManager.OnClicked += BuildAllObjects;
         currentSelectedTool = "Fill";
     }
 
-    public void ClearSelect()
+    #endregion
+
+    #region Building
+
+    private void BuildObject()
     {
-        inputManager.OnClickStarted -= BrushToggleStart;
-        inputManager.OnClickEnded -= BrushToggleEnd;
-        inputManager.OnClicked -= BuildAllObjects;
-        inputManager.OnClicked -= BuildObject;
-        inputManager.OnClicked -= SelectObject;
+        if (inputManager.IsMouseOnGrid() && !inputManager.IsPointerOverUI())
+        {
+            buildingState.OnDotAction(GetGridPos(), currentObjectId, currentGridLayer);
+        }
     }
 
+
+    private void BuildAllObjects()
+    {
+        if (inputManager.IsMouseOnGrid() && !inputManager.IsPointerOverUI())
+        {
+            for (int i = 0; i < gridData.GridSize; i++)
+            {
+                for (int j = 0; j < gridData.GridSize; j++)
+                {
+                    buildingState.OnDotAction(new Vector3Int(i, j, 0), currentObjectId, currentGridLayer);
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region Selection
     private void SelectObject()
     {
         if (inputManager.IsMouseOnGrid() && !inputManager.IsPointerOverUI())
@@ -433,6 +473,7 @@ public class GridManager : MonoBehaviour
             {
                 Debug.Log("Nothing to select!");
                 OnItemSelected?.Invoke(false, "");
+                selectionState.EndState();
             }
         }
     }
@@ -452,15 +493,29 @@ public class GridManager : MonoBehaviour
             inputManager.OnClicked -= MoveObjectEnd;
             OnMoveObjectStart?.Invoke(false, "");
         }
-
     }
-
 
     public void RotateObject()
     {
         selectionState.OnRotate(GetGridPos());
     }
 
+
+
+    #endregion
+
+
+    public void ClearBuildTools()
+    {
+        inputManager.OnClickStarted -= BrushToggleStart;
+        inputManager.OnClickEnded -= BrushToggleEnd;
+        inputManager.OnClicked -= BuildAllObjects;
+        inputManager.OnClicked -= BuildObject;
+    }
+    public void ClearSelectTools()
+    {
+        inputManager.OnClicked -= SelectObject;
+    }
 
     private Vector3Int GetGridPos()
     {

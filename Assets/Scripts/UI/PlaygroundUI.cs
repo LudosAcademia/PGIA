@@ -17,26 +17,29 @@ public class PlaygroundUI : MonoBehaviour
     [SerializeField] private GameObject selectedPlaygroundsbuttons;
     [SerializeField] private GameObject serverMessageGameObject;
     [SerializeField] private TextMeshProUGUI serverMessageText;
-    [SerializeField] private GameObject blockPanel;
+
     [SerializeField] private TextMeshProUGUI titleHeader;
     [SerializeField] private TextMeshProUGUI subjectHeader;
     [SerializeField] private GameObject noSelectedPlaygroundsText;
     [SerializeField] private GameObject creationPanel;
     [SerializeField] private GameObject editPanel;
+    [SerializeField] private GameObject mainEditPanel;
     [SerializeField] private GameObject selectionPanel;
-    [SerializeField] private GameObject testingPanel;
     [SerializeField] private GameObject buildingPanel;
     [SerializeField] private GameObject toolsPanel;
     [SerializeField] private GameObject selectedTilePanel;
     [SerializeField] private GameObject editInfoPanel;
     [SerializeField] private GameObject editSelectedButtonsPanel;
 
+    [Header("Block Panels: ")]
+    [SerializeField] private GameObject serverBlockPanel;
+    [SerializeField] private GameObject moveObjectBlockPanel;
+    [Space(5)]
 
-
-    [Space(10)]
-
+    [Header("Dropdowns: ")]
     [SerializeField] private TMP_Dropdown layerDropdownMenu;
     [SerializeField] private TMP_Dropdown itemDropdownMenu;
+    [Space(5)]
 
     [Header("Default Header Name: ")]
     [SerializeField] private string gameTitle = "G.I.A.";
@@ -58,7 +61,7 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnCancelPlaygroundCreate += OpenViewPlaygroundPanel;
         PlaygroundManager.OnEndPlaygroundCreate += CloseCreatePlaygroundPanel;
         PlaygroundManager.OnEndPlaygroundCreate += OpenViewPlaygroundPanel;
-        CreatePlayground.OnPlaygroundCreated += OpenBlockPanel;
+        CreatePlayground.OnPlaygroundCreated += OpenServerBlockPanel;
         ServerClient.PlaygroundSaved += AddPlaygroundToView;
 
         ServerClient.PlaygroundSaved += OpenServerMessageOnCreation;
@@ -71,6 +74,7 @@ public class PlaygroundUI : MonoBehaviour
         GridManager.OnItemSelected += SetSelectedTile;
         GridManager.OnItemSelected += ToggleSelectedButtons;
         GridManager.OnMoveObjectStart += SetInfoPanel;
+        GridManager.OnMoveObjectStart += ToggleMoveObjectBlockPanel;
 
     }
 
@@ -94,6 +98,7 @@ public class PlaygroundUI : MonoBehaviour
         GridManager.OnItemSelected -= SetSelectedTile;
         GridManager.OnItemSelected -= ToggleSelectedButtons;
         GridManager.OnMoveObjectStart -= SetInfoPanel;
+        GridManager.OnMoveObjectStart += ToggleMoveObjectBlockPanel;
 
     }
 
@@ -130,14 +135,19 @@ public class PlaygroundUI : MonoBehaviour
         noSelectedPlaygroundsText.SetActive(false);
     }
 
-    private void OpenBlockPanel(PlaygroundData none)
+    private void ToggleMoveObjectBlockPanel(bool set, string none)
     {
-        blockPanel.SetActive(true);
+        moveObjectBlockPanel.SetActive(set);
     }
 
-    private void CloseBlockPanel()
+    private void OpenServerBlockPanel(PlaygroundData none)
     {
-        blockPanel.SetActive(false);
+        serverBlockPanel.SetActive(true);
+    }
+
+    private void CloseServerBlockPanel()
+    {
+        serverBlockPanel.SetActive(false);
     }
 
     private void OpenEditPanel()
@@ -160,9 +170,9 @@ public class PlaygroundUI : MonoBehaviour
         creationPanel.SetActive(false);
     }
 
-    public void OpenSelectionPanel()
+    public void OpenMainEditPanel()
     {
-        selectionPanel.SetActive(true);
+        mainEditPanel.SetActive(true);
     }
 
     public void OpenBuildingPanel()
@@ -178,6 +188,17 @@ public class PlaygroundUI : MonoBehaviour
         toolsPanel.SetActive(false);
     }
 
+    public void OpenSelectionPanel()
+    {
+        returnButtonState = ReturnState.BuildState;
+        selectionPanel.SetActive(true);
+    }
+
+    public void CloseSelectionPanel()
+    {
+        selectionPanel.SetActive(false);
+    }
+
     private void ReturnCreationState()
     {
         returnButtonState = ReturnState.CreationState;
@@ -191,6 +212,7 @@ public class PlaygroundUI : MonoBehaviour
         returnButtonState = ReturnState.EditState;
         //SetHeader(username, );
         CloseBuildingPanel();
+        CloseSelectionPanel();
         //OpenSelectionPanel();
         OpenEditPanel();
     }
@@ -258,7 +280,7 @@ public class PlaygroundUI : MonoBehaviour
 
     public void CloseServerMessage()
     {
-        CloseBlockPanel();
+        CloseServerBlockPanel();
         serverMessageGameObject.SetActive(false);
         CloseCreatePlaygroundPanel();
         OpenViewPlaygroundPanel();
@@ -365,6 +387,7 @@ public class PlaygroundUI : MonoBehaviour
 
     private void SetItemsInDropdown(ObjectsDatabase items)
     {
+        itemDropdownMenu.ClearOptions();
         List<TMP_Dropdown.OptionData> optionsData = new();
 
         foreach (var item in items.objectData)
@@ -391,6 +414,15 @@ public class PlaygroundUI : MonoBehaviour
     private void ToggleSelectedButtons(bool set, string nul)
     {
         editSelectedButtonsPanel.SetActive(set);
+        if (!set)
+        {
+            selectionPanel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Please select an object";
+        }
+        else
+        {
+            selectionPanel.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "";
+
+        }
     }
 
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlaygroundManager : MonoBehaviour
 {
-    [SerializeField] private PlaygroundUI playgroundUI;
+    [SerializeField] private RatioManager ratioManager;
     [SerializeField] private GridManager gridManager;
     [SerializeField] private GameObject gridContainer;
     [SerializeField] private GameObject vCam;
@@ -24,11 +24,6 @@ public class PlaygroundManager : MonoBehaviour
 
     private void Start()
     {
-        if (GameManager.Instance.debug)
-        {
-            CreateDummyData();
-        }
-        playgroundUI.PlaygroundUIStart();
 
     }
 
@@ -96,39 +91,6 @@ public class PlaygroundManager : MonoBehaviour
     {
         OnEndPlaygroundCreate?.Invoke();
     }
-
-
-    private void CreateDummyData()
-    {
-        GameData gameData = new GameData();
-        gameData.currentUser = new();
-        gameData.currentUser.name = "Test User";
-        gameData.currentUser.curr_ply_index = 0;
-        gameData.currentUser.playgrounds = new();
-        PlaygroundData testPlayground = new();
-        testPlayground.plygrd_name = "TestPlayground";
-        testPlayground.plygrd_desc = "This playground is for testing";
-        testPlayground.plygrd_size = 25;
-        testPlayground.tilesArray = new();
-        TileDataArray tileDataArray = new TileDataArray();
-        tileDataArray.tiles = new TileData[testPlayground.plygrd_size];
-        tileDataArray.layer = "Base";
-
-        for (int i = 0; i < testPlayground.plygrd_size; i++)
-        {
-            TileData newTile = new TileData();
-            newTile.tile_index = i;
-            newTile.tile_contain_id = -1;
-            newTile.tile_rot_y = 0;
-            tileDataArray.tiles[i] = newTile;
-        }
-        testPlayground.tilesArray.Add(tileDataArray);
-        GameManager.Instance.GameData = gameData;
-    }
-
-
-
-
 
 }
 
