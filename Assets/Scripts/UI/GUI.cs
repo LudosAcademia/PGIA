@@ -135,7 +135,7 @@ public class GUI : MonoBehaviour
 
     private void UpdateDetailText()
     {
-        userDetailText.text = " Name: " + GameManager.Instance.GetGameData().currentUser.name
+        userDetailText.text = " Name: " + GameManager.Instance.GetGameData().currentUser.username
     + "\n Position: " + GameManager.Instance.GetGameData().currentUser.curr_ply_index;
 
     }

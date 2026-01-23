@@ -21,16 +21,16 @@ public class BuildingState : IBuildingState
     {
         //Debug.Log("Object Chaged: " + objectId + " Level: " + tile);
 
-        Debug.Log(CheckValidity(gridData, gridPosition.x, gridPosition.z, layer));
+        //Debug.Log(CheckValidity(gridData, gridPosition.x, gridPosition.z, layer));
 
         if (CheckValidity(gridData, gridPosition.x, gridPosition.z, layer))
         {
-            gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId = objectId;
+            gridData.grid[layer].data[gridPosition.x, gridPosition.z].containId = objectId;
             objectManipulator.PlaceObject(gridPosition);
         }
         else
         {
-            Debug.Log("There is another object there");
+            //Debug.Log("There is another object there");
             return;
         }
 
@@ -43,7 +43,7 @@ public class BuildingState : IBuildingState
 
     private bool CheckValidity(PlaygroundGrid gridData, int x, int z, string layer)
     {
-        return gridData.gridLayers[layer][x,z].containId == -1;
+        return gridData.grid[layer].data[x,z].containId == -1;
     }
 
 }

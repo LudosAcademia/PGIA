@@ -1,71 +1,107 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlaygroundGrid
+public class PlaygroundGrid : MonoBehaviour
 {
-    public Dictionary<string, GridTile[,]> gridLayers = new Dictionary<string, GridTile[,]>();
+    public Dictionary<string, GridLayer> grid;
+    public List<string> gridLayerKeys;
     private int gridSize;
 
     public int GridSize { get => gridSize; set => gridSize = value; }
 
-    public PlaygroundGrid(int size, string layer)
+    public PlaygroundGrid(int size, List<string> layerKeys)
     {
+        gridLayerKeys = layerKeys;
+        grid = new();
 
-        GridTile[,] newGrid = new GridTile[size, size];
+        foreach (var layer in gridLayerKeys)
+        {
+            GridLayer gridLayer = new(size);
+            GridTile[,] newGridData = new GridTile[size, size];
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    newGridData[i, j] = new();
+                }
+            }
+            gridLayer.data = newGridData;
+            grid.Add(layer, gridLayer);
+        }
+    }
+
+    public GridTile GetDataIndex(int index, int size, string layer)
+    {
+        int x = index % size;
+        int z = index / size;
+
+        return grid[layer].data[x, z];
+    }
+
+    public void SetDataIndex(GridTile tile, int index, int size, string layer)
+    {
+        int x = index % size;
+        int z = index / size;
+        grid[layer].data[x, z] = tile;
+    }
+
+    public void DeleteTile(string layer, int x, int z)
+    {
+        grid[layer].data[x, z] = new();
+        grid[layer].visuals[x, z] = null;
+    }
+
+    public void AddLayer(string layerKey)
+    {
+        int size = gridSize;
+        GridLayer gridLayer = new(size);
+        GridTile[,] newGridData = new GridTile[size, size];
         for (int i = 0; i < size; i++)
         {
             for (int j = 0; j < size; j++)
             {
-                newGrid[i, j] = new();
+                newGridData[i, j] = new();
+            }
+        }
+        gridLayer.data = newGridData;
+        gridLayerKeys.Add(layerKey);
+        grid.Add(layerKey, gridLayer);
+    }
+
+
+    public void DeleteLayer(string layer)
+    {
+        for (int i = 0; i < gridSize; i++)
+        {
+            for (int j = 0; j < gridSize; j++)
+            {
+                if (grid[layer].visuals[i, j] != null)
+                {
+                    Destroy(grid[layer].visuals[i, j]);
+                }
             }
         }
 
-        gridLayers.Add(layer, newGrid);
+        grid[layer].data = null;
+        grid[layer].visuals = null;
+        grid.Remove(layer);
+        gridLayerKeys.Remove(layer);
     }
-
-    public PlaygroundGrid() { }
-
-
-    public GridTile GetTileWithIndex(int index, int size, string layer)
-    {
-        int x = index % size;
-        int z = index / size;
-        GridTile[,] currentTileArr = gridLayers[layer];
-        return currentTileArr[x, z];
-    }
-
-    public void SetTileWithIndex(int index, int size, int containId, int rotY, string layer)
-    {
-        int x = index % size;
-        int z = index / size;
-
-
-        Debug.Log(index + " " + size + " " + containId + " " + rotY + " " + layer);
-        //Debug.Log("The Cords: x: " + x + " / z: " + z);
-        //Debug.Log("Is Grid Layer Null: " + gridLayers[layer][x,z] == null);
-
-        gridLayers[layer][x, z].x = x;
-        gridLayers[layer][x, z].z = z;
-        gridLayers[layer][x, z].index = index;
-        gridLayers[layer][x, z].containId = containId;
-        gridLayers[layer][x, z].rotY = rotY;
-
-    }
-
-    public void SetTileWithCord(int x, int z, int containId,int rotY, string layer)
-    {
-        gridLayers[layer][x, z].containId = containId;
-        gridLayers[layer][x, z].rotY = rotY;
-    }
-
-    public int GetTileIndex(int x, int z, string layer)
-    {
-        return gridLayers[layer][x, z].index;
-    }
-
-
 
 }
+
+public class GridLayer
+{
+    public GridTile[,] data;
+    public GameObject[,] visuals;
+
+    public GridLayer(int size)
+    {
+        data = new GridTile[size, size];
+        visuals = new GameObject[size, size];
+    }
+}
+
 
 public class GridTile
 {
@@ -84,9 +120,25 @@ public class GridTile
         this.containId = -1;
     }
 
+    public GridTile(int x, int z, int index, int rotY, int containId)
+    {
+        this.x = x;
+        this.z = z;
+        this.rotY = rotY;
+        this.index = index;
+        this.containId = containId;
+    }
 
+    public GridTile(int x, int z, int rotY, int containId)
+    {
+        this.x = x;
+        this.z = z;
+        this.rotY = rotY;
+        this.containId = containId;
+    }
 
 }
+
 
 /*
  * 

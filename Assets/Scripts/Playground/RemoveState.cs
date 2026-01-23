@@ -26,7 +26,7 @@ public class RemoveState : IBuildingState
         }
         else
         {
-            Debug.Log("There is nothing to remove");
+            //Debug.Log("There is nothing to remove");
         }
     }
 
@@ -39,7 +39,7 @@ public class RemoveState : IBuildingState
 
     private bool CheckValidity(PlaygroundGrid gridData, int x, int z, string layer)
     {
-        return gridData.gridLayers[layer][x, z].containId == -1;
+        return gridData.grid[layer].data[x, z].containId == -1;
     }
 
 }

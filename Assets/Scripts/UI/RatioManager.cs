@@ -1,23 +1,30 @@
 using UnityEngine;
+using GameEnums;
 
 public class RatioManager : MonoBehaviour
 {
     [SerializeField] private bool toggleLandscape = false;
     private PlaygroundUI activePlaygroundUI;
 
+    private PlaygroundUI landscapePlaygroundUI;
+    private PlaygroundUI portraitPlaygroundUI;
+
+    private RotationLevel rotateLevel;
+
     public PlaygroundUI ActivePlaygroundUI { get => activePlaygroundUI; set => activePlaygroundUI = value; }
 
     private void Awake()
     {
+        portraitPlaygroundUI = transform.GetChild(0).GetComponent<PlaygroundUI>();
+        landscapePlaygroundUI = transform.GetChild(1).GetComponent<PlaygroundUI>();
+
         if (toggleLandscape)
         {
-            activePlaygroundUI = transform.GetChild(1).GetComponent<PlaygroundUI>();
-            transform.GetChild(1).gameObject.SetActive(true);
+            AssignLandscapeMode();
         }
         else
         {
-            activePlaygroundUI = transform.GetChild(0).GetComponent<PlaygroundUI>();
-            transform.GetChild(0).gameObject.SetActive(true);
+            AssignPortraitMode();
         }
     }
 
@@ -28,8 +35,47 @@ public class RatioManager : MonoBehaviour
             CreateDummyData();
         }
 
-        activePlaygroundUI.PlaygroundUIStart();
+        portraitPlaygroundUI.PlaygroundUIStart();
+        landscapePlaygroundUI.PlaygroundUIStart();
     }
+
+
+    private void OnDisable()
+    {
+        transform.GetChild(0).GetComponent<PlaygroundUI>().UnsubscribeListeners();
+        transform.GetChild(1).GetComponent<PlaygroundUI>().UnsubscribeListeners();
+    }
+
+    private void AssignLandscapeMode()
+    {
+        activePlaygroundUI = transform.GetChild(1).GetComponent<PlaygroundUI>();
+        transform.GetChild(0).GetChild(0).gameObject.SetActive(false);
+        transform.GetChild(1).GetChild(0).gameObject.SetActive(true);
+        rotateLevel = RotationLevel.Landscape;
+    }
+
+    private void AssignPortraitMode()
+    {
+        activePlaygroundUI = transform.GetChild(0).GetComponent<PlaygroundUI>();
+        transform.GetChild(0).GetChild(0).gameObject.SetActive(true);
+        transform.GetChild(1).GetChild(0).gameObject.SetActive(false);
+        rotateLevel = RotationLevel.Portrait;
+    }
+
+    public void RotateScreen()
+    {
+        if (rotateLevel == RotationLevel.Landscape)
+        {
+            //Turn Landscape to Portrait
+            AssignPortraitMode();
+        }
+        else
+        {
+            //Turn Portrait to Landscape
+            AssignLandscapeMode();
+        }
+    }
+
 
     public void SelectPlayground()
     {
@@ -40,17 +86,17 @@ public class RatioManager : MonoBehaviour
     {
         GameData gameData = new GameData();
         gameData.currentUser = new();
-        gameData.currentUser.name = "Test User";
+        gameData.currentUser.username = "Test User";
         gameData.currentUser.curr_ply_index = 0;
         gameData.currentUser.playgrounds = new();
         PlaygroundData testPlayground = new();
         testPlayground.plygrd_name = "TestPlayground";
         testPlayground.plygrd_desc = "This playground is for testing";
         testPlayground.plygrd_size = 25;
-        testPlayground.tilesArray = new();
+        testPlayground.tiles_arrays = new();
         TileDataArray tileDataArray = new TileDataArray();
         tileDataArray.tiles = new TileData[testPlayground.plygrd_size];
-        tileDataArray.layer = "Base";
+        tileDataArray.tile_layer = "Base";
 
         for (int i = 0; i < testPlayground.plygrd_size; i++)
         {
@@ -60,12 +106,8 @@ public class RatioManager : MonoBehaviour
             newTile.tile_rot_y = 0;
             tileDataArray.tiles[i] = newTile;
         }
-        testPlayground.tilesArray.Add(tileDataArray);
+        testPlayground.tiles_arrays.Add(tileDataArray);
         GameManager.Instance.GameData = gameData;
     }
-
-
-
-
 
 }

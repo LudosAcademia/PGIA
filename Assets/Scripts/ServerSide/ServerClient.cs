@@ -1,12 +1,12 @@
 using System;
 using System.Collections;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
 public class ServerClient : MonoBehaviour
 {
+    public static event Action OnServerWait;
     public static event Action<bool> PlaygroundSaved;
     public static event Action<bool> PlaygroundUpdated;
     public static event Action<bool> PlaygroundDeleted;
@@ -14,42 +14,66 @@ public class ServerClient : MonoBehaviour
 
     private void OnEnable()
     {
-        CreatePlayground.OnPlaygroundCreated += SendData;
+        CreatePlayground.OnPlaygroundCreated += SendNewPlayground;
+        PlaygroundManager.OnEndPlaygroundDelete += SendData;
         PlaygroundManager.OnEndPlaygroundEdit += SendData;
     }
 
     private void OnDisable()
     {
-        CreatePlayground.OnPlaygroundCreated -= SendData;
+        CreatePlayground.OnPlaygroundCreated -= SendNewPlayground;
+        PlaygroundManager.OnEndPlaygroundDelete -= SendData;
         PlaygroundManager.OnEndPlaygroundEdit -= SendData;
     }
 
-    private void SendData(PlaygroundData playground)
+    private void SendNewPlayground(PlaygroundData newPlayground)
     {
         if (GameManager.Instance.debug)
         {
-            if (playground.update)
+            GameManager.Instance.GameData.currentUser.playgrounds.Add(newPlayground);
+            PlaygroundSaved?.Invoke(true);
+            return;
+        }
+
+        //VERY IMPORTANT ASSIGNMENT:---------------------------
+        newPlayground.layer_count = newPlayground.tiles_arrays.Count;
+        //-----------------------------------------------------
+        string url = GameManager.Instance.GetGameData().gameConfig.apiBaseUrl + GameManager.Instance.GetGameData().gameConfig.sendDataPythonEndpoint;
+        string jwt = GameManager.Instance.GetGameData().userToken;
+        string payload = JsonUtility.ToJson(newPlayground, true);
+        Debug.Log(payload);
+        OnServerWait?.Invoke();
+        StartCoroutine(HandlePayload(jwt, payload, url, newPlayground));
+    }
+
+
+    private void SendData()
+    {
+        int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
+        PlaygroundData selectedPlayground = GameManager.Instance.GameData.currentUser.playgrounds[index];
+
+        if (GameManager.Instance.debug)
+        {
+            if (selectedPlayground.update)
             {
                 PlaygroundUpdated?.Invoke(true);
-
             }
-            else if (playground.delete)
+            else if (selectedPlayground.delete)
             {
-
                 PlaygroundDeleted?.Invoke(true);
-            }
-            else
-            {
-                GameManager.Instance.GameData.currentUser.playgrounds.Add(playground);
-                PlaygroundSaved?.Invoke(true);
             }
             return;
         }
+
+        //VERY IMPORTANT ASSIGNMENT:---------------------------
+        selectedPlayground.layer_count = selectedPlayground.tiles_arrays.Count;
+        //-----------------------------------------------------
         string url = GameManager.Instance.GetGameData().gameConfig.apiBaseUrl + GameManager.Instance.GetGameData().gameConfig.sendDataPythonEndpoint;
         string jwt = GameManager.Instance.GetGameData().userToken;
-        string payload = JsonUtility.ToJson(playground, true);
+        string payload = JsonUtility.ToJson(selectedPlayground, true);
         Debug.Log(payload);
-        StartCoroutine(HandlePayload(jwt, payload, url, playground));
+        OnServerWait?.Invoke();
+        StartCoroutine(HandlePayload(jwt, payload, url, selectedPlayground));
     }
 
 
@@ -68,33 +92,38 @@ public class ServerClient : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Recieved Payload: " + request.downloadHandler.text);
-            string data = request.downloadHandler.text;
-            GameManager.Instance.GameData.currentUser.playgrounds.Add(playground);
-            //PlaygroundData idHolder = new();
-            //idHolder = JsonUtility.FromJson<PlaygroundData>(data);
 
             if (playground.update)
             {
+                int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
+                GameManager.Instance.GameData.currentUser.playgrounds[index].update = false;
                 PlaygroundUpdated?.Invoke(true);
             }
-
-            if (playground.delete)
+            else if (playground.delete)
             {
+                int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
+                GameManager.Instance.GameData.currentUser.playgrounds.RemoveAt(index);
+                GameManager.Instance.GameData.currentUser.curr_ply_index = -1;
+                //Debug.Log(GameManager.Instance.GameData.currentUser.PrintUserData());
                 PlaygroundDeleted?.Invoke(true);
             }
-
-            int lastIndex = GameManager.Instance.GameData.currentUser.playgrounds.Count - 1;
-            GameManager.Instance.GameData.currentUser.playgrounds[lastIndex].id = JsonUtility.FromJson<TempPlaygroundId>(data).plygrd_id;
-
-            foreach (var item in GameManager.Instance.GameData.currentUser.playgrounds)
+            else
             {
-                Debug.Log("name: " + item.plygrd_name);
-                Debug.Log("id: " + item.id);
+                string data = request.downloadHandler.text;
+                GameManager.Instance.GameData.currentUser.playgrounds.Add(playground);
+                int lastIndex = GameManager.Instance.GameData.currentUser.playgrounds.Count - 1;
+                GameManager.Instance.GameData.currentUser.playgrounds[lastIndex].id = JsonUtility.FromJson<TempPlaygroundId>(data).plygrd_id;
 
+                foreach (var item in GameManager.Instance.GameData.currentUser.playgrounds)
+                {
+                    Debug.Log("username: " + item.plygrd_name);
+                    Debug.Log("id: " + item.id);
+
+                }
+
+                PlaygroundSaved?.Invoke(true);
             }
-            //idHolder = null;
 
-            PlaygroundSaved?.Invoke(true);
         }
         else
         {
@@ -103,22 +132,23 @@ public class ServerClient : MonoBehaviour
             if (playground.update)
             {
                 PlaygroundUpdated?.Invoke(false);
-
             }
             else if (playground.delete)
             {
-
                 PlaygroundDeleted?.Invoke(false);
             }
             else
             {
                 PlaygroundSaved?.Invoke(false);
-
             }
 
         }
 
     }
+
+
+
+
 
 }
 

@@ -5,42 +5,54 @@ using UnityEngine;
 
 public class CreatePlayground : MonoBehaviour
 {
-    [SerializeField] private TMP_InputField playgroundName;
-    [SerializeField] private TMP_InputField playgroundDesc;
-    [SerializeField] private TMP_Dropdown playgroundSize;
-
     public static event Action<PlaygroundData> OnPlaygroundCreated;
+    string playgroundName;
+    string playgroundDesc;
+    int playgroundSize;
+
+    public void SetPlaygroundParameters(string name, string desc, int SizeIndex)
+    {
+        playgroundName = name;
+        playgroundDesc = desc;
+
+        if (SizeIndex == 0)
+        {
+            playgroundSize = 6;
+        }
+        else if (SizeIndex == 1)
+        {
+            playgroundSize = 8;
+        }
+        else if (SizeIndex == 2)
+        {
+            playgroundSize = 10;
+        }
+    }
+
+    private void OnEnable()
+    {
+        PlaygroundUI.OnPlaygroundInputValueChange += SetPlaygroundParameters;
+    }
+
+    private void OnDisable()
+    {
+        PlaygroundUI.OnPlaygroundInputValueChange -= SetPlaygroundParameters;
+    }
+
 
     public void CreateNewPlayground()
     {
-        string name = playgroundName.text;
-        string desc = playgroundDesc.text;
-        int size = 6;
-
-        if (playgroundSize.value == 0)
-        {
-            size = 6;
-        }
-        else if (playgroundSize.value == 1)
-        {
-            size = 8;
-        }
-        else if(playgroundSize.value == 2)
-        {
-            size = 10;
-        }
-
         PlaygroundData newPlayground = new PlaygroundData();
         List<PlaygroundData> allPlaygroundData = GameManager.Instance.GetGameData().currentUser.playgrounds;
 
         newPlayground.id = -1;
-        newPlayground.plygrd_name = name;
-        newPlayground.plygrd_desc = desc;
-        newPlayground.plygrd_size = size * size;
-        newPlayground.tilesArray = new();
+        newPlayground.plygrd_name = playgroundName;
+        newPlayground.plygrd_desc = playgroundDesc;
+        newPlayground.plygrd_size = playgroundSize * playgroundSize;
+        newPlayground.tiles_arrays = new();
         TileDataArray tileDataArray = new TileDataArray();
         tileDataArray.tiles = new TileData[newPlayground.plygrd_size];
-        tileDataArray.layer = "Base";
+        tileDataArray.tile_layer = "Base";
 
         for (int i = 0; i < newPlayground.plygrd_size; i++)
         {
@@ -50,7 +62,7 @@ public class CreatePlayground : MonoBehaviour
             newTile.tile_rot_y = 0;
             tileDataArray.tiles[i] = newTile;
         }
-        newPlayground.tilesArray.Add(tileDataArray);
+        newPlayground.tiles_arrays.Add(tileDataArray);
 
         //DebugPlaygroundData(newPlayground);
         OnPlaygroundCreated?.Invoke(newPlayground);

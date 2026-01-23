@@ -6,6 +6,7 @@ public class GameData
     //send jwt for confimation and extra json for data
     public UserData currentUser = new();
     public string userToken;
+    public int lastSavedIndex = -1;
     public GameConfig gameConfig = new();
 }
 

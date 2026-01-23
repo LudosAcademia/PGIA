@@ -1,0 +1,342 @@
+﻿using GameEnums;
+using System;
+using System.Diagnostics;
+
+namespace GameNodes
+{
+    public class BasicMathNode : Node
+    {
+        public MathOperations operation;
+        //public NumberTypes numberType;
+
+        public NodeValue numberA;
+        public NodeValue numberB;
+
+        public BasicMathNode(string name) : base(name, 2, 1)
+        {
+            inputfields[0] = new()
+            {
+                name = "A",
+                fieldInputType = FieldInput.Number,
+            };
+            inputfields[0].nodeRefs = new();
+
+
+            inputfields[1] = new()
+            {
+                name = "B",
+                fieldInputType = FieldInput.Number,
+
+            };
+            inputfields[1].nodeRefs = new();
+
+
+            outputfields[0] = new()
+            {
+                name = "Output",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[0].nodeRefs = new();
+        }
+
+        private bool CheckForSameValueType(NodeValueType typeA, NodeValueType typeB)
+        {
+            return typeA == typeB;
+        }
+
+        public override void ValueAssignment()
+        {
+            if (inputfields[0].nodeRefs[0] != null)
+            {
+                numberA = inputfields[0].nodeRefs[0].baseValue;
+            }
+
+            if (inputfields[1].nodeRefs[0] != null)
+            {
+                numberB = inputfields[0].nodeRefs[0].baseValue;
+            }
+
+            if (inputfields[1].nodeRefs[0] != null && inputfields[1].nodeRefs[0] != null)
+            {
+                executeReady = true;
+            }
+        }
+
+        public override void Operation()
+        {
+            switch (baseValue.type)
+            {
+                case NodeValueType.Double:
+                    MathOperation(numberA.AsDouble(), numberB.AsDouble());
+                    break;
+                case NodeValueType.Float:
+                    MathOperation(numberA.AsFloat(), numberB.AsFloat());
+                    break;
+                case NodeValueType.Int:
+                    MathOperation(numberA.AsInt(), numberB.AsInt());
+                    break;
+            }
+
+            foreach (var outputNode in outputfields[0].nodeRefs)
+            {
+                outputNode.baseValue = baseValue;
+                outputNode.ValueAssignment();
+                if (outputNode.executeReady)
+                {
+                    outputNode.Operation();
+                }
+            }
+
+        }
+
+        public void MathOperation(double numA, double numB)
+        {
+            switch (operation)
+            {
+                case MathOperations.Add:
+                    baseValue.CastDouble((numA + numB));
+                    break;
+                case MathOperations.Subtract:
+                    baseValue.CastDouble((numA - numB));
+                    break;
+                case MathOperations.Multiply:
+                    baseValue.CastDouble((numA * numB));
+                    break;
+                case MathOperations.Divide:
+                    baseValue.CastDouble((numA / numB));
+                    break;
+            }
+        }
+
+        public void MathOperation(float numA, float numB)
+        {
+            switch (operation)
+            {
+                case MathOperations.Add:
+                    baseValue.CastFloat((numA + numB));
+                    break;
+                case MathOperations.Subtract:
+                    baseValue.CastFloat((numA - numB));
+                    break;
+                case MathOperations.Multiply:
+                    baseValue.CastFloat((numA * numB));
+                    break;
+                case MathOperations.Divide:
+                    baseValue.CastFloat((numA / numB));
+                    break;
+            }
+
+        }
+
+        public void MathOperation(int numA, int numB)
+        {
+            switch (operation)
+            {
+                case MathOperations.Add:
+                    baseValue.CastInt((numA + numB));
+                    break;
+                case MathOperations.Subtract:
+                    baseValue.CastInt((numA - numB));
+                    break;
+                case MathOperations.Multiply:
+                    baseValue.CastInt((numA * numB));
+                    break;
+                case MathOperations.Divide:
+                    baseValue.CastInt((numA / numB));
+                    break;
+            }
+        }
+
+    }
+
+    public class ValueNode : Node
+    {
+        public ValueNode(string name, NodeValueType valueType) : base(name, 1, 1)
+        {
+            inputfields[0] = new()
+            {
+                name = "Value",
+                fieldInputType = FieldInput.Number,
+            };
+            inputfields[0].nodeRefs = new();
+
+            outputfields[0] = new()
+            {
+                name = "Output",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[0].nodeRefs = new();
+
+            baseValue.type = valueType;
+            baseNode = true;
+        }
+
+        public override void Operation()
+        {
+            if (!executeReady)
+            {
+                throw new InvalidOperationException("Execute called while not ready");
+            }
+
+            foreach (var outputNode in outputfields[0].nodeRefs)
+            {
+                outputNode.baseValue = baseValue;
+                outputNode.ValueAssignment();
+                if (outputNode.executeReady)
+                {
+                    outputNode.Operation();
+                }
+            }
+        }
+
+        public override void ValueAssignment()
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+
+    public class ExecuteNode : Node
+    {
+        public ExecuteNode(string name) : base(name, 1, 0)
+        {
+            inputfields[0] = new()
+            {
+                name = "Execute",
+                fieldInputType = FieldInput.Number,
+            };
+            inputfields[0].nodeRefs = new();
+        }
+
+        public override void Operation()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void ValueAssignment()
+        {
+            baseValue = inputfields[0].nodeRefs[0].baseValue;
+        }
+    }
+
+}
+
+/*
+ *         public TypeNumberNode numberA;
+        public TypeNumberNode numberB;
+
+        public MathNode(MathNodes opp, NumberTypes type, TypeNumberNode nA, TypeNumberNode nB)
+        {
+            operation = opp;
+            switch (type)
+            {
+                case NumberTypes.Int:
+                    typeNumber = new TypeInt();
+                    break;
+                case NumberTypes.Long:
+                    typeNumber = new TypeLong();
+                    break;
+                case NumberTypes.Double:
+                    typeNumber = new TypeDouble();
+                    break;
+                case NumberTypes.Float:
+                    typeNumber = new TypeFloat();
+                    break;
+            }
+
+        }
+
+ * 
+ *     public class TypeNumberNode : Node
+    {
+        //public NumberTypes numberType;
+        public BaseType typeNumber;
+        public TypeNumberNode(NumberTypes numberType)
+        {
+            switch (numberType)
+            {
+                case NumberTypes.Int:
+                    typeNumber = new TypeInt();
+                    break;
+                case NumberTypes.Long:
+                    typeNumber = new TypeLong();
+                    break;
+                case NumberTypes.Double:
+                    typeNumber = new TypeDouble();
+                    break;
+                case NumberTypes.Float:
+                    typeNumber = new TypeFloat();
+                    break;
+            }
+        }
+
+        public int GetIntValue(NumberTypes numberType)
+        {
+            return (int)typeNumber.value;
+        }
+
+        public double GetDoubleValue(NumberTypes numberType)
+        {
+
+        }
+
+        public long GetLongValue(NumberTypes numberType)
+        {
+
+        }
+
+        public float GetFloatValue(NumberTypes numberType)
+        {
+
+        }
+
+
+
+    }
+ * 
+ * 
+    public class TypeNumberNode : Node
+    {
+        public NumberTypes numberType;
+        private double number; // store numerics as double
+
+        public int AsInt() => (int)number;
+
+        public long AsLong() => (long)number;
+
+        public float AsFloat() => (float)number;
+
+        public double AsDouble() => number;
+
+        public static TypeNumberNode From(int v) =>
+            new() { numberType = NumberTypes.Int, number = v };
+
+        public static TypeNumberNode From(float v) =>
+            new() { numberType = NumberTypes.Float, number = v };
+
+        public static TypeNumberNode From(double v) =>
+            new() { numberType = NumberTypes.Double, number = v };
+
+        public static TypeNumberNode From(long v) =>
+            new() { numberType = NumberTypes.Long, number = v };
+    }
+ * 
+ * 
+         public TypeNumberNode() { }
+
+        public TypeNumberNode(NumberTypes numberType, double number)
+        {
+            switch (numberType) {
+                case NumberTypes.Int:
+                    break;
+                case NumberTypes.Long:
+                    break;
+                case NumberTypes.Double:
+                    break;
+                case NumberTypes.Float:
+                    break;
+            }
+        }
+
+ 
+ */

@@ -5,6 +5,18 @@ TagManager:
   serializedVersion: 3
   tags:
   - InputManager
+  - LogicManager
+  - GUI
+  - NodeSelection
+  - NodeFieldName
+  - NodeName
+  - TypeNumber
+  - TypeText
+  - FieldTypeNumber
+  - FieldTypeText
+  - LogicPanel
+  - NodeConnect
+  - NodeConnections
   layers:
   - Default
   - TransparentFX

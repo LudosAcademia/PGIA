@@ -33,15 +33,15 @@ public class SelectState : ISelectionState
     public void OnAction(Vector3Int gridPosition, string layer, GameObject selectedObject)
     {
         //previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), false);
-        Debug.Log("Selected Pos in Grid: " + gridPosition);
+        //Debug.Log("Selected Pos in Grid: " + gridPosition);
         previewSystem.StartHighlightSelectedTile(gridPosition);
 
-        if (gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId != -1)
+        if (gridData.grid[layer].data[gridPosition.x, gridPosition.z].containId != -1)
         {
-            Debug.Log("Grid Base: " + gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId);
+            //Debug.Log("Grid Base: " + gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId);
             currentSelectedObject = selectedObject;
             currentSelectedVector = gridPosition;
-            currentSelectedObjectId = gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId;
+            currentSelectedObjectId = gridData.grid[layer].data[gridPosition.x, gridPosition.z].containId;
         }
         else
         {
@@ -74,7 +74,7 @@ public class SelectState : ISelectionState
 
     public void OnMoveEnd(Vector3Int gridPosition, string layer)
     {
-        objectManipulator.MoveObject(currentSelectedVector, gridPosition, currentSelectedObjectId, layer, currentSelectedObject);
+        objectManipulator.MoveObject(currentSelectedVector, gridPosition, layer);
         previewSystem.StartHighlightSelectedTile(gridPosition);
 
     }

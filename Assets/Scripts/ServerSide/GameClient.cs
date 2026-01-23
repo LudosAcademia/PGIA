@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Reflection;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -8,6 +9,7 @@ using UnityEngine.Networking;
 public class GameClient : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI userInfo;
+    [SerializeField] private GameObject startButton; 
 
     string phpApiUrl = "";
     string pythonApiUrl = "";
@@ -23,10 +25,13 @@ public class GameClient : MonoBehaviour
     //read the JSON file inside the game folder and write it in the config class for later use
     IEnumerator GetGameConfig()
     {
-        string url = Application.absoluteURL;
-        string basePath = url.Substring(0, url.LastIndexOf("/"));
-        string configUrl = basePath + "/game_config.json";
+        //string url = Application.absoluteURL;
+        //string basePath = url.Substring(0, url.LastIndexOf("/"));
+        //string configUrl = basePath + "/game_config.json";
 
+        //string configUrl = Application.streamingAssetsPath + "/game_config.json";
+        string configUrl = new Uri(new Uri(Application.absoluteURL), "game_config.json").ToString();
+        Debug.Log("Get Config: " + configUrl);
         UnityWebRequest request = UnityWebRequest.Get(configUrl);
 
         yield return request.SendWebRequest();
@@ -53,6 +58,9 @@ public class GameClient : MonoBehaviour
     //Get Raw JWT from Auth Endpoint //Default: game_connect.php
     IEnumerator GetToken(string url)
     {
+        Debug.Log("Get JWT: " + url);
+        Debug.Log("php url: " + phpApiUrl);
+
         UnityWebRequest request = UnityWebRequest.Get(url);
 
         yield return request.SendWebRequest();
@@ -73,7 +81,103 @@ public class GameClient : MonoBehaviour
     }
 
     //Decodes the JWT into readable JSON and inserts that JSON into it respective class
+
     private void DecodeJWT(string jwt)
+    {
+        string[] splitToken = jwt.Split(".");
+
+        if (splitToken.Length == 3)
+        {
+            string payload = splitToken[1];
+            int reminder = splitToken[1].Length % 4;
+            if (reminder > 0)
+            {
+                int missingChars = 4 - reminder;
+                payload += new string('=', missingChars);
+            }
+
+            byte[] bytes = System.Convert.FromBase64String(payload);
+            string data = System.Text.UTF8Encoding.UTF8.GetString(bytes);
+            //Debug.Log(data);
+            StartCoroutine(RecieveUserData(jwt, data));
+        }
+    }
+
+
+    IEnumerator RecieveUserData(string jwt, string payload)
+    {
+        //string url = GameManager.Instance.GetGameData().gameConfig.apiBaseUrl + GameManager.Instance.GetGameData().gameConfig.getDataPythonEndpoint;
+        //string url = "http://localhost:5000/get_data";
+        Debug.Log("Get UserData: " + pythonApiUrl);
+        UnityWebRequest request = new UnityWebRequest(pythonApiUrl, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(payload);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Authorization", "Bearer " + jwt);
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            startButton.SetActive(true);
+            string jsonData = request.downloadHandler.text;
+            Debug.Log("Recieved Payload: " + jsonData);
+            //TestGameManager();
+            //PrintGameConfig();
+            UserData userData = new UserData();
+            userData = new UserData();
+            userData = JsonUtility.FromJson<UserData>(jsonData);
+            GameManager.Instance.GameData.userToken = jwt;
+            GameManager.Instance.GameData.currentUser = userData;
+            PrintUserData(GameManager.Instance.GameData);
+        }
+        else
+        {
+            Debug.LogError("Error: " + request.error);
+        }
+
+    }
+
+
+    private void PrintData(object data)
+    {
+        Type type = data.GetType();
+        string text = "";
+        FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+        Debug.Log("PrintData Pressed, Field Length: " + fields.Length);
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            object value = fields[i].GetValue(data);
+            Debug.Log("" + fields[i].Name + ": " + value);
+            text += "" + fields[i].Name + ": " + value + "\n";
+        }
+        userInfo.text = text;
+
+    }
+
+
+
+    private void PrintUserData(GameData data)
+    {
+        userInfo.text = "Welcome Back " + data.currentUser.username;
+    }
+
+    public void GoCreationScene()
+    {
+        GameManager.Instance.GoToLevel("CreationScene");
+    }
+
+
+}
+
+
+
+/*
+ * 
+ *     private void DecodeJWT(string jwt)
     {
 
         string[] splitToken = jwt.Split(".");
@@ -136,17 +240,8 @@ public class GameClient : MonoBehaviour
     }
 
 
-
-    private void PrintUserData(GameData data)
-    {
-        userInfo.text = "User Name: " + data.currentUser.name + "\n JWT: " + data.userToken + "\n";
-    }
-
-}
-
-
-
-/*
+ * 
+ * 
  * http://localhost:8000/game_connect.php
  * 
  *     //string pythonApiUrl = "http://localhost:5000/send_data";

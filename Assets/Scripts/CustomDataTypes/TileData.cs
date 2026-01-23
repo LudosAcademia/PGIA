@@ -17,12 +17,33 @@ public class TileData
         this.tile_contain_id = tile_contain_id;
         this.tile_rot_y = tile_rot_y;
     }
+
+    public string PrintTileData()
+    {
+        return "tile index: " + this.tile_index
+            + "\n tile contain: " + this.tile_contain_id
+            + "\n tile rot y: " + this.tile_rot_y;
+    }
+
 }
 
+[Serializable]
 public class TileDataArray
 {
-    public string layer;
+    public string tile_layer;
     public TileData[] tiles;
+
+    public string PrintTileDataArray()
+    {
+        string layerText = "tile_layer: " + this.tile_layer;
+        string tilesText = "";
+        foreach (var item in this.tiles)
+        {
+            tilesText += item.PrintTileData();
+        }
+
+        return layerText + tilesText;
+    }
 
 }
 

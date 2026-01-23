@@ -17,10 +17,10 @@ public class AuthenticateClient : MonoBehaviour
     {
         GameManager.Instance.GameData.gameConfig.apiBaseUrl = "http://localhost";
         GameManager.Instance.GameData.gameConfig.authPhpEndpoint = ":8000/src/game_client_login.php";
-        GameManager.Instance.GameData.gameConfig.getDataPythonEndpoint = ":5000/get_data";
-        GameManager.Instance.GameData.gameConfig.sendDataPythonEndpoint = ":5000/send_data";
+        GameManager.Instance.GameData.gameConfig.getDataPythonEndpoint = ":5000/gameserver/get_data";
+        GameManager.Instance.GameData.gameConfig.sendDataPythonEndpoint = ":5000/gameserver/send_data";
 
-
+        // / gameserver / get_data
     }
 
     public void Login()
@@ -107,11 +107,10 @@ public class AuthenticateClient : MonoBehaviour
             Debug.Log("Recieved Payload: " + jsonData);
             //TestGameManager();
             //PrintGameConfig();
-            UserData userData = new UserData();
-            userData = new UserData();
-            userData = JsonUtility.FromJson<UserData>(jsonData);
+            UserData userData = JsonUtility.FromJson<UserData>(jsonData);
             GameManager.Instance.GameData.userToken = jwt;
             GameManager.Instance.GameData.currentUser = userData;
+            Debug.Log("The UserData: " + userData.PrintUserData());
         }
         else
         {
@@ -142,17 +141,17 @@ public class AuthenticateClient : MonoBehaviour
 
     private void PrintUserData(GameData data)
     {
-        userDetailText.text = "User Name: " + data.currentUser.name
+        userDetailText.text = "User Name: " + data.currentUser.username
             + "\n Current Playground: " + data.currentUser.curr_ply_index
             + "\n Playgrounds: " + data.currentUser.playgrounds.Count
-            + "\n Tiles: " + data.currentUser.playgrounds[data.currentUser.curr_ply_index].tilesArray;
+            + "\n Tiles: " + data.currentUser.playgrounds[data.currentUser.curr_ply_index].tiles_arrays;
     }
 
 
     private void TestGameManager()
     {
         userDetailText.text = "User Token: " + GameManager.Instance.GameData.userToken +
-            "Username: " + GameManager.Instance.GameData.currentUser.name;
+            "Username: " + GameManager.Instance.GameData.currentUser.username;
 
     }
 

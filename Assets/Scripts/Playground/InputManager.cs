@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -18,8 +17,12 @@ public class InputManager : MonoBehaviour
     private Vector3 lastPosition;
 
     [SerializeField] private LayerMask placementLayerMask;
+    [SerializeField] private Material graphShaderMat;
+    [SerializeField] private Vector2 defaultGraphShaderTiling;
+    private Vector2 currentGraphShaderTiling;
+    public event Action OnClicked, OnExit, OnClickStarted, OnClickEnded, OnDebug, OnRightClick
+        , OnWheelClickStarted, OnWheelClickEnded;
 
-    public event Action OnClicked, OnExit, OnClickStarted, OnClickEnded;
 
     private bool toggleVirtualCamera = false;
     private bool toggleVirtualCameraControls = false;
@@ -27,6 +30,8 @@ public class InputManager : MonoBehaviour
     private void Awake()
     {
         inputSystem = new InputSystem();
+        graphShaderMat.SetVector("_Tiling", defaultGraphShaderTiling);
+        currentGraphShaderTiling = defaultGraphShaderTiling;
     }
 
     private void OnEnable()
@@ -34,7 +39,8 @@ public class InputManager : MonoBehaviour
         inputSystem.PlacementInput.Enable();
         SubscribeMouseInput();
         inputSystem.PlacementInput.Escape.started += EspaceClicked;
-
+        inputSystem.PlacementInput.Debug.performed += DebugPressed;
+        inputSystem.PlacementInput.MouseRightClick.performed += MouseRightClicked;
 
     }
 
@@ -43,8 +49,12 @@ public class InputManager : MonoBehaviour
         inputSystem.PlacementInput.Disable();
         UnsubscribeMouseInput();
         inputSystem.PlacementInput.Escape.started -= EspaceClicked;
+        inputSystem.PlacementInput.Debug.performed -= DebugPressed;
+        inputSystem.PlacementInput.MouseRightClick.performed -= MouseRightClicked;
+
 
     }
+
 
     private void ZoomCamera()
     {
@@ -52,8 +62,6 @@ public class InputManager : MonoBehaviour
         if (scroll.y != 0)
         {
             //Debug.Log(Mathf.Clamp(scroll.y, minZoom, maxZoom));
-
-
             if (scroll.y == 1)
             {
                 float currentRad = vCamOrbitalFollow.Radius;
@@ -78,6 +86,12 @@ public class InputManager : MonoBehaviour
 
         }
 
+    }
+
+    public Vector2 ZoomGraph()
+    {
+        Vector2 scroll = inputSystem.PlacementInput.ZoomGraph.ReadValue<Vector2>();
+        return scroll;
     }
 
     private void MoveCamera()
@@ -135,11 +149,41 @@ public class InputManager : MonoBehaviour
         //Debug.Log("Mouse Clicked");
     }
 
+    private void MouseWheelClickStarted(InputAction.CallbackContext context)
+    {
+        MouseWheelClickStarted();
+    }
+
+    private void MouseWheelClickEnded(InputAction.CallbackContext context)
+    {
+        MouseWheelClickEnded();
+    }
+
+    private void MouseRightClicked(InputAction.CallbackContext context)
+    {
+        MouseRightClick();
+    }
+
     private void EspaceClicked(InputAction.CallbackContext context)
     {
 
         //exit = true;
         //Debug.Log("Mouse Pressed");
+    }
+
+    private void DebugPressed(InputAction.CallbackContext context)
+    {
+        DebugSignal();
+    }
+
+    private void MouseRightClick()
+    {
+        OnRightClick?.Invoke();
+    }
+
+    private void DebugSignal()
+    {
+        OnDebug?.Invoke();
     }
 
     private void MouseClicked()
@@ -155,6 +199,16 @@ public class InputManager : MonoBehaviour
     private void MouseClickEnded()
     {
         OnClickEnded?.Invoke();
+    }
+
+    private void MouseWheelClickStarted()
+    {
+        OnWheelClickStarted?.Invoke();
+    }
+
+    private void MouseWheelClickEnded()
+    {
+        OnWheelClickEnded?.Invoke();
     }
 
     public bool IsPointerOverUI() => EventSystem.current.IsPointerOverGameObject();
@@ -174,6 +228,12 @@ public class InputManager : MonoBehaviour
         return lastPosition;
     }
 
+    public Vector2 GetMousePosition()
+    {
+        Vector3 mousePos = Mouse.current.position.ReadValue();
+        return (Vector2)mousePos;
+    }
+
     public bool IsMouseOnGrid()
     {
         Vector3 mousePos = Mouse.current.position.ReadValue();
@@ -189,19 +249,22 @@ public class InputManager : MonoBehaviour
         return false;
     }
 
+    public void SubscribeMouseInput()
+    {
+        inputSystem.PlacementInput.MouseClick.started += MouseClickedStarted;
+        inputSystem.PlacementInput.MouseClick.canceled += MouseClickedEnded;
+        inputSystem.PlacementInput.MouseWheelClick.started += MouseWheelClickStarted;
+        inputSystem.PlacementInput.MouseWheelClick.canceled += MouseWheelClickEnded;
+        toggleVirtualCameraControls = true;
+    }
 
     public void UnsubscribeMouseInput()
     {
         inputSystem.PlacementInput.MouseClick.started -= MouseClickedStarted;
         inputSystem.PlacementInput.MouseClick.canceled -= MouseClickedEnded;
+        inputSystem.PlacementInput.MouseWheelClick.started -= MouseWheelClickStarted;
+        inputSystem.PlacementInput.MouseWheelClick.canceled -= MouseWheelClickEnded;
         toggleVirtualCameraControls = false;
-    }
-
-    public void SubscribeMouseInput()
-    {
-        inputSystem.PlacementInput.MouseClick.started += MouseClickedStarted;
-        inputSystem.PlacementInput.MouseClick.canceled += MouseClickedEnded;
-        toggleVirtualCameraControls = true;
     }
 
 }

@@ -1,9 +1,9 @@
 using System;
+using UnityEditor.Callbacks;
 using UnityEngine;
 
 public class PlaygroundManager : MonoBehaviour
 {
-    [SerializeField] private RatioManager ratioManager;
     [SerializeField] private GridManager gridManager;
     [SerializeField] private GameObject gridContainer;
     [SerializeField] private GameObject vCam;
@@ -12,29 +12,67 @@ public class PlaygroundManager : MonoBehaviour
 
     public static event Action<int, int> OnStartPlaygroundEdit;
     public static event Action OnCancelPlaygroundEdit;
-    public static event Action<PlaygroundData> OnEndPlaygroundEdit;
+    public static event Action OnEndPlaygroundEdit;
 
     public static event Action OnStartPlaygroundDelete;
-    public static event Action<PlaygroundData> OnEndPlaygroundDelete;
-
+    public static event Action OnCancelPlaygroundDelete;
+    public static event Action OnEndPlaygroundDelete;
 
     public static event Action OnStartPlaygroundCreate;
     public static event Action OnCancelPlaygroundCreate;
     public static event Action OnEndPlaygroundCreate;
 
-    private void Start()
-    {
+    public static event Action OnGeneralReturn;
+    public static event Action OnCloseBlockPanel;
 
+    public static event Action OnStartLogicManagement;
+    public static event Action OnEndLogicManagement;
+
+
+    public void OnLogicManagementOpen()
+    {
+        OnStartLogicManagement?.Invoke();
     }
 
+    public void OnLogicManagementClose()
+    {
+        OnEndLogicManagement?.Invoke();
+    }
 
+    public void CloseBlockPanel()
+    {
+        OnCloseBlockPanel?.Invoke();
+    }
+
+    public void GeneralReturn()
+    {
+        OnGeneralReturn?.Invoke();
+    }
+
+    public void StartDeletePlayground()
+    {
+        OnStartPlaygroundDelete?.Invoke();
+    }
+
+    public void CancelDeletePlayground()
+    {
+        OnCancelPlaygroundDelete?.Invoke();
+    }
+
+    public void EndDeletePlayground()
+    {
+        int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
+        GameManager.Instance.GameData.lastSavedIndex = index;
+        GameManager.Instance.GameData.currentUser.playgrounds[index].delete = true;
+        OnEndPlaygroundDelete?.Invoke();
+    }
 
     public void StartEditPlayground()
     {
         int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
         int totalSize = GameManager.Instance.GameData.currentUser.playgrounds[index].plygrd_size;
         int size = (int)Math.Sqrt(totalSize);
-        Debug.Log("The index: " + index + "The Size: " + size);
+        //Debug.Log("The index: " + index + "The Size: " + size);
         if (gridContainer.transform.childCount != 0)
         {
             for (int i = 0; i < gridContainer.transform.childCount; i++)
@@ -45,12 +83,6 @@ public class PlaygroundManager : MonoBehaviour
         OnStartPlaygroundEdit?.Invoke(size, index);
         vCam.SetActive(true);
     }
-
-
-    /*
-
-     
-     */
 
     public void CancelEditPlayground()
     {
@@ -71,7 +103,7 @@ public class PlaygroundManager : MonoBehaviour
         int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
         gridManager.SaveGrid(index);
         GameManager.Instance.GameData.currentUser.playgrounds[index].update = true;
-        OnEndPlaygroundEdit?.Invoke(GameManager.Instance.GameData.currentUser.playgrounds[index]);
+        OnEndPlaygroundEdit?.Invoke();
     }
 
 
