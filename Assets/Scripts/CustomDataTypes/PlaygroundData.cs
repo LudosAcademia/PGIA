@@ -18,7 +18,7 @@ public class PlaygroundData
     {
         string tileArrayText = string.Empty;
         string fieldText = "delete: " + this.delete +
-            "\n update: " + this.update + "\n id: " + this.id + "\n plygrd_name: " + this.plygrd_name +
+            "\n update: " + this.update + "\n guid: " + this.id + "\n plygrd_name: " + this.plygrd_name +
             "\n plygrd_desc: " + this.plygrd_desc + "\n plygrd_size: " + this.plygrd_size + "\n layer_count: " + this.layer_count;
 
         foreach (var item in this.tiles_arrays)

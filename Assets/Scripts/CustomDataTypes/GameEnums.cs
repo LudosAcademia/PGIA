@@ -43,6 +43,8 @@ namespace GameEnums
         DoubleValueNode = 4,
         FloatValueNode = 5,
         IntValueNode = 6,
+        StringValueNode = 7,
+        BooleanValueNode = 8,
     }
 
 

@@ -117,7 +117,7 @@ public class ServerClient : MonoBehaviour
                 foreach (var item in GameManager.Instance.GameData.currentUser.playgrounds)
                 {
                     Debug.Log("username: " + item.plygrd_name);
-                    Debug.Log("id: " + item.id);
+                    Debug.Log("guid: " + item.id);
 
                 }
 

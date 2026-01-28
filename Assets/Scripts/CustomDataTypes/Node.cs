@@ -1,8 +1,10 @@
-using System.Collections.Generic;
+
+using GameEnums;
+using System;
 
 public abstract class Node
 {
-    public int id;
+    public Guid guid; // Global Node Id
     public string name;
     public int inputFieldNumber;
     public int outputFieldNumber;
@@ -15,7 +17,6 @@ public abstract class Node
     public Node() { }
     public Node(string name, int inputFieldNumber, int outputFieldNumber)
     {
-        id = -1;
         this.name = name;
         this.inputFieldNumber = inputFieldNumber;
         this.outputFieldNumber = outputFieldNumber;
@@ -24,19 +25,16 @@ public abstract class Node
         outputfields = new NodeField[outputFieldNumber];
     }
 
-    //    public abstract NodeValue NodeOperation(NodeValue nodeValue);
-
-    public abstract void Operation();
-
+    //public abstract NodeValue NodeOperation(NodeValue nodeValue);
     public abstract void ValueAssignment();
 
-
+    public abstract void Operation();
 }
 
 
 public struct NodeValue
 {
-    public GameEnums.NodeValueType type;
+    public NodeValueType type;
     private double number;
     private bool boolean;
     private string text;
@@ -55,7 +53,22 @@ public struct NodeValue
 
     public override string ToString()
     {
-        return "The Number As Double: " + AsDouble() + " The Text: " + AsString() + " The Boolean " + AsBool() + " " + base.ToString();
+        string number = string.Empty;
+
+        switch (type)
+        {
+            case NodeValueType.Double:
+                number = " Double: " + AsDouble() + " ";
+                break;
+            case NodeValueType.Float:
+                number = " Float: " + AsFloat() + " ";
+                break;
+            case NodeValueType.Int:
+                number = " Int: " + AsInt() + " ";
+                break;
+        }
+
+        return "The Number As Double: " + number + " The Text: " + AsString() + " The Boolean " + AsBool() + " " + base.ToString();
     }
 
 }

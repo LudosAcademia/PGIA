@@ -1,5 +1,4 @@
 using GameEnums;
-using GameNodes;
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -24,20 +23,20 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     private List<GameObject> inputFields = new();
     private List<GameObject> outputFields = new();
 
-    public static event Action<GameObject> OnMouseOver;
+    public static event Action<int> OnMouseOver;
     public static event Action<int, int, NodeFieldFlag> OnStartNewConnection;
     public static event Action<int, int, NodeFieldFlag> OnEndNewConnection;
     public static event Action<int, NodeFieldFlag, NodeValue> OnNodeValueChange;
 
-    [HideInInspector] public Node node;
+    [HideInInspector] public NodeData node;
 
     public int NodeIndex { get => nodeIndex; set => nodeIndex = value; }
+    public LogicManager LogicManager { get => logicManager; set => logicManager = value; }
 
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         parentRectTransform = transform.GetComponentInParent<RectTransform>();
-        logicManager = GameObject.FindWithTag("LogicManager").GetComponent<LogicManager>();
         selectedOutline = GetComponent<Outline>();
         selectedOutline.enabled = false;
     }
@@ -61,73 +60,76 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             return;
         }
 
-        for (int i = 0; i < node.inputfields.Length; i++)
+        for (int i = 0; i < node.nodeData.inputfields.Length; i++)
         {
-            GameObject newinputField = Instantiate(inputFieldPrefab);
-            newinputField.transform.SetParent(inputFieldParent, false);
-            switch (node.inputfields[i].fieldInputType)
-            {
-                case FieldInput.Text:
-                    GameObject fieldTypeText = FindChildWithTag(newinputField.transform, "FieldTypeText");
-                    fieldTypeText.SetActive(true);
-                    int indexText = i;
-                    fieldTypeText.GetComponent<TMP_InputField>().onValueChanged.AddListener((e) =>
-                    {
-                        ValueChange(indexText, NodeFieldFlag.InputRef, FieldInput.Text);
-                    });
-                    break;
-                case FieldInput.Number:
-                    GameObject fieldTypeNumber = FindChildWithTag(newinputField.transform, "FieldTypeNumber");
-                    fieldTypeNumber.SetActive(true);
-                    int indexNumber = i;
-                    fieldTypeNumber.GetComponent<TMP_InputField>().onValueChanged.AddListener((e) =>
-                    {
-                        ValueChange(indexNumber, NodeFieldFlag.InputRef, FieldInput.Number);
-                    });
-                    break;
-                case FieldInput.Dropdown:
-                    break;
-                case FieldInput.Toggle:
-                    break;
-            }
+            GameObject newInputField = Instantiate(inputFieldPrefab);
+            newInputField.transform.SetParent(inputFieldParent, false);
+            newInputField.GetComponentInChildren<NodePoint>().LogicManager = logicManager;
+            newInputField.GetComponentInChildren<NodePoint>().nodeData = node;
+            newInputField.GetComponentInChildren<NodePoint>().fieldIndex = i;
 
-            FindChildWithTag(newinputField.transform, "NodeFieldName").GetComponent<TextMeshProUGUI>().text = node.inputfields[i].name;
-            //newinputField.GetComponent<NodeConnect>().AttactedNodeLogic = GetComponent<NodeLogic>();
-            //newinputField.GetComponent<NodeConnect>().NodeFieldFlag = NodeFieldFlag.InputRef;
-            if (node.baseNode == true)
+            if (node.nodeData.baseNode)
             {
-                newinputField.GetComponentInChildren<Button>().gameObject.SetActive(false);
-            }
-            else
-            {
-                int index = i;
-                newinputField.GetComponentInChildren<Button>().onClick.AddListener(() =>
+
+                switch (node.nodeData.inputfields[i].fieldInputType)
                 {
-                    HandleNodeConnection(index, NodeFieldFlag.InputRef);
-                });
+                    case FieldInput.Text:
+                        GameObject fieldTypeText = FindChildWithTag(newInputField.transform, "FieldTypeText");
+                        fieldTypeText.SetActive(true);
+                        int indexText = i;
+                        fieldTypeText.GetComponent<TMP_InputField>().onValueChanged.AddListener((e) =>
+                        {
+                            ValueChange(indexText, NodeFieldFlag.InputRef, FieldInput.Text);
+                        });
+                        break;
+                    case FieldInput.Number:
+                        GameObject fieldTypeNumber = FindChildWithTag(newInputField.transform, "FieldTypeNumber");
+                        fieldTypeNumber.SetActive(true);
+                        int indexNumber = i;
+                        fieldTypeNumber.GetComponent<TMP_InputField>().onValueChanged.AddListener((e) =>
+                        {
+                            ValueChange(indexNumber, NodeFieldFlag.InputRef, FieldInput.Number);
+                        });
+                        break;
+                    case FieldInput.Dropdown:
+                        break;
+                    case FieldInput.Toggle:
+                        GameObject fieldTypeBoolean = FindChildWithTag(newInputField.transform, "FieldTypeToggle");
+                        fieldTypeBoolean.SetActive(true);
+                        int indexBoolean = i;
+                        fieldTypeBoolean.GetComponent<Toggle>().onValueChanged.AddListener((e) =>
+                        {
+                            ValueChange(indexBoolean, NodeFieldFlag.InputRef, FieldInput.Number);
+                        });
+                        break;
+                }
+
+                //newinputField.GetComponent<NodeConnect>().AttactedNodeLogic = GetComponent<NodeLogic>();
+                //newinputField.GetComponent<NodeConnect>().NodeFieldFlag = NodeFieldFlag.InputRef;
+
+                newInputField.GetComponentInChildren<NodePoint>().gameObject.SetActive(false);
             }
 
-            inputFields.Add(newinputField);
+            FindChildWithTag(newInputField.transform, "NodeFieldName").GetComponent<TextMeshProUGUI>().text = node.nodeData.inputfields[i].name;
+            inputFields.Add(newInputField);
         }
 
-        for (int i = 0; i < node.outputfields.Length; i++)
+        for (int i = 0; i < node.nodeData.outputfields.Length; i++)
         {
-            GameObject newoutputField = Instantiate(outputFieldPrefab);
-            newoutputField.transform.SetParent(outputFieldParent, false);
-            FindChildWithTag(newoutputField.transform, "NodeFieldName").GetComponent<TextMeshProUGUI>().text = node.outputfields[i].name;
+            GameObject newOutputField = Instantiate(outputFieldPrefab);
+            newOutputField.transform.SetParent(outputFieldParent, false);
+            newOutputField.GetComponentInChildren<NodePoint>().LogicManager = logicManager;
+            newOutputField.GetComponentInChildren<NodePoint>().nodeData = node;
+            newOutputField.GetComponentInChildren<NodePoint>().fieldIndex = i;
+            FindChildWithTag(newOutputField.transform, "NodeFieldName").GetComponent<TextMeshProUGUI>().text = node.nodeData.outputfields[i].name;
             //newoutputField.GetComponent<NodeConnect>().AttactedNodeLogic = GetComponent<NodeLogic>();
             //newoutputField.GetComponent<NodeConnect>().NodeFieldFlag = NodeFieldFlag.OutputRef;
-            int index = i;
 
-            newoutputField.GetComponentInChildren<Button>().onClick.AddListener(() =>
-            {
-                HandleNodeConnection(index, NodeFieldFlag.OutputRef);
-            });
 
-            outputFields.Add(newoutputField);
+            outputFields.Add(newOutputField);
         }
 
-        FindChildWithTag(transform, "NodeName").GetComponent<TextMeshProUGUI>().text = node.name + " " + nodeIndex;
+        FindChildWithTag(transform, "NodeName").GetComponent<TextMeshProUGUI>().text = node.nodeData.name + " " + nodeIndex;
     }
 
 
@@ -163,22 +165,6 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     }
 
-    public void HandleNodeConnection(int fieldIndex, NodeFieldFlag fieldFlag)
-    {
-        Debug.Log("Field Index: " + fieldIndex + "Field Flag: " + fieldFlag);
-
-        if (LogicManager.startNewConnection)
-        {
-            Debug.Log("Ended New Connection");
-            OnEndNewConnection?.Invoke(nodeIndex, fieldIndex, fieldFlag);
-        }
-        else
-        {
-            Debug.Log("Started New Connection");
-            OnStartNewConnection?.Invoke(nodeIndex, fieldIndex, fieldFlag);
-        }
-    }
-
     public void ValueChange(int fieldIndex, NodeFieldFlag fieldFlag, FieldInput inputType)
     {
         NodeValue value = new();
@@ -200,10 +186,11 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
                 break;
             case FieldInput.Number:
                 field = FindChildWithTag(inputFields[fieldIndex].transform, "FieldTypeNumber");
-                double number = 0;
-                if (field.GetComponent<TMP_InputField>().text != null)
+                var input = field.GetComponent<TMP_InputField>().text;
+                if (!double.TryParse(input, out double number))
                 {
-                    number = double.Parse(field.GetComponent<TMP_InputField>().text);
+                    //Debug.LogError("It has to be a valid number");
+                    return;
                 }
                 value.CastDouble(number);
                 //Debug.Log("The Value in Input Field: " + double.Parse(field.GetComponent<TMP_InputField>().text));
@@ -212,9 +199,11 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             case FieldInput.Dropdown:
                 break;
             case FieldInput.Toggle:
+                field = FindChildWithTag(inputFields[fieldIndex].transform, "FieldTypeToggle");
+                value.CastBoolean(field.GetComponent<Toggle>().isOn);
                 break;
         }
-
+        //Debug.Log("Assign Value");
 
         OnNodeValueChange?.Invoke(nodeIndex, fieldFlag, value);
     }
@@ -227,11 +216,11 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             //Debug.Log("Mouse in Node");
             selectedOutline.enabled = true;
-            OnMouseOver?.Invoke(this.gameObject);
         }
-
-        logicManager.AssignNodeInputs(true);
-        LogicManager.overANodeConnect = true;
+        OnMouseOver?.Invoke(nodeIndex);
+        logicManager.AssignNodeControlInputs(true);
+        logicManager.inNodeVisual = true;
+        logicManager.CheckInVoid();
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -282,9 +271,11 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             toggleMoveConnect = true;
         }
 
-        logicManager.AssignNodeInputs(false);
+        logicManager.AssignNodeControlInputs(false);
+        logicManager.inNodeVisual = false;
+        logicManager.CheckInVoid();
+
         //nodeConnects.toggleLineUpdate = false;
-        LogicManager.overANodeConnect = false;
     }
 
     public void SelectThisNode()
@@ -301,3 +292,26 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
 
 }
+
+/*
+             newoutputField.GetComponentInChildren<Button>().onClick.AddListener(() =>
+            {
+                HandleNodeConnection(index, NodeFieldFlag.OutputRef);
+            });
+     public void HandleNodeConnection(int fieldIndex, NodeFieldFlag fieldFlag)
+    {
+        Debug.Log("Field Index: " + fieldIndex + "Field Flag: " + fieldFlag);
+
+        if (LogicManager.newConnection)
+        {
+            Debug.Log("Ended New Connection");
+            OnEndNewConnection?.Invoke(nodeIndex, fieldIndex, fieldFlag);
+        }
+        else
+        {
+            Debug.Log("Started New Connection");
+            OnStartNewConnection?.Invoke(nodeIndex, fieldIndex, fieldFlag);
+        }
+    }
+
+ */

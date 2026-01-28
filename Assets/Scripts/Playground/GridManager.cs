@@ -319,7 +319,7 @@ public class GridManager : MonoBehaviour
     private void ChangeCurrentLayer(int layerIndex)
     {
         currentGridLayer = playgroundGrid.gridLayerKeys[layerIndex];
-        Debug.Log(currentGridLayer);
+        //Debug.Log(currentGridLayer);
         layerText.text = currentGridLayer.ToString();
     }
 

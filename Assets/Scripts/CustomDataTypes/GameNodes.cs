@@ -1,10 +1,62 @@
 ﻿using GameEnums;
 using System;
-using System.Diagnostics;
+using UnityEngine;
 
 namespace GameNodes
 {
-    public class BasicMathNode : Node
+    public class BaseNode : Node
+    {
+        public BaseNode() { }
+        public BaseNode(string name, int inputFieldNumber, int outputFieldNumber) : base(name, inputFieldNumber, outputFieldNumber) { }
+
+        public override void ValueAssignment()
+        {
+
+            foreach (var inputRef in inputfields)
+            {
+                if (inputRef.nodeRefs[0] == null)
+                {
+                    return;
+                }
+            }
+
+            executeReady = true;
+        }
+
+        public override void Operation()
+        {
+            foreach (var outputNode in outputfields[0].nodeRefs)
+            {
+                outputNode.baseValue = baseValue;
+                outputNode.ValueAssignment();
+                if (outputNode.executeReady)
+                {
+                    outputNode.Operation();
+                }
+            }
+        }
+
+        public override string ToString()
+        {
+            string baseValueString = "In " + name + " Value: " + baseValue.ToString();
+
+            foreach (var outputRef in outputfields)
+            {
+                if (outputRef.nodeRefs.Count != 0)
+                {
+                    foreach (var nodeRef in outputRef.nodeRefs)
+                    {
+                        baseValueString += "\n To Ref: " + nodeRef.name + ": " + nodeRef.ToString() + "\n ";
+                    }
+                }
+            }
+
+            return baseValueString + base.ToString();
+        }
+    }
+
+
+    public class BasicMathNode : BaseNode
     {
         public MathOperations operation;
         //public NumberTypes numberType;
@@ -56,10 +108,8 @@ namespace GameNodes
                 numberB = inputfields[0].nodeRefs[0].baseValue;
             }
 
-            if (inputfields[1].nodeRefs[0] != null && inputfields[1].nodeRefs[0] != null)
-            {
-                executeReady = true;
-            }
+            base.ValueAssignment();
+
         }
 
         public override void Operation()
@@ -77,15 +127,8 @@ namespace GameNodes
                     break;
             }
 
-            foreach (var outputNode in outputfields[0].nodeRefs)
-            {
-                outputNode.baseValue = baseValue;
-                outputNode.ValueAssignment();
-                if (outputNode.executeReady)
-                {
-                    outputNode.Operation();
-                }
-            }
+            Debug.Log("Base Value in Math Node: " + baseValue.ToString());
+            base.Operation();
 
         }
 
@@ -147,17 +190,33 @@ namespace GameNodes
             }
         }
 
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+
     }
 
-    public class ValueNode : Node
+    public class ValueNode : BaseNode
     {
         public ValueNode(string name, NodeValueType valueType) : base(name, 1, 1)
         {
-            inputfields[0] = new()
+            inputfields[0] = new();
+            inputfields[0].name = name;
+
+            if (valueType == NodeValueType.Double || valueType == NodeValueType.Float || valueType == NodeValueType.Int)
             {
-                name = "Value",
-                fieldInputType = FieldInput.Number,
-            };
+                inputfields[0].fieldInputType = FieldInput.Number;
+            }
+            else if (valueType == NodeValueType.String)
+            {
+                inputfields[0].fieldInputType = FieldInput.Text;
+            }
+            else if (valueType == NodeValueType.Boolean)
+            {
+                inputfields[0].fieldInputType = FieldInput.Toggle;
+            }
+
             inputfields[0].nodeRefs = new();
 
             outputfields[0] = new()
@@ -178,15 +237,15 @@ namespace GameNodes
                 throw new InvalidOperationException("Execute called while not ready");
             }
 
-            foreach (var outputNode in outputfields[0].nodeRefs)
-            {
-                outputNode.baseValue = baseValue;
-                outputNode.ValueAssignment();
-                if (outputNode.executeReady)
-                {
-                    outputNode.Operation();
-                }
-            }
+            Debug.Log(ToString());
+
+            base.Operation();
+
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
         }
 
         public override void ValueAssignment()
@@ -196,7 +255,7 @@ namespace GameNodes
     }
 
 
-    public class ExecuteNode : Node
+    public class ExecuteNode : BaseNode
     {
         public ExecuteNode(string name) : base(name, 1, 0)
         {
@@ -206,22 +265,35 @@ namespace GameNodes
                 fieldInputType = FieldInput.Number,
             };
             inputfields[0].nodeRefs = new();
+
+            executeReady = true;
         }
 
         public override void Operation()
         {
-            throw new System.NotImplementedException();
+            Debug.Log("Base Value in Value Node: " + baseValue.ToString());
         }
 
         public override void ValueAssignment()
         {
             baseValue = inputfields[0].nodeRefs[0].baseValue;
         }
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+
     }
 
 }
 
 /*
+ * 
+            if (inputfields[1].nodeRefs[0] != null && inputfields[1].nodeRefs[0] != null)
+            {
+            }
+ * 
+ * 
  *         public TypeNumberNode numberA;
         public TypeNumberNode numberB;
 
