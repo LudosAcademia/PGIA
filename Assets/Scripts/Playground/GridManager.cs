@@ -124,6 +124,8 @@ public class GridManager : MonoBehaviour
         //Initilizer playgroundGrid:
         playgroundGrid = new(size, gridLayerKeys);
         playgroundGrid.GridSize = size;
+        //will change
+        playgroundGrid.logicReadyItems = new();
 
         for (int layerIndex = 0; layerIndex < tileDataArray.Count; layerIndex++)
         {

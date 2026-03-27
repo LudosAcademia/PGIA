@@ -11,10 +11,9 @@ namespace GameNodes
 
         public override void ValueAssignment()
         {
-
             foreach (var inputRef in inputfields)
             {
-                if (inputRef.nodeRefs[0] == null)
+                if (!inputRef.isAssigned)
                 {
                     return;
                 }
@@ -91,11 +90,6 @@ namespace GameNodes
             outputfields[0].nodeRefs = new();
         }
 
-        private bool CheckForSameValueType(NodeValueType typeA, NodeValueType typeB)
-        {
-            return typeA == typeB;
-        }
-
         public override void ValueAssignment()
         {
             if (inputfields[0].nodeRefs[0] != null)
@@ -105,7 +99,7 @@ namespace GameNodes
 
             if (inputfields[1].nodeRefs[0] != null)
             {
-                numberB = inputfields[0].nodeRefs[0].baseValue;
+                numberB = inputfields[1].nodeRefs[0].baseValue;
             }
 
             base.ValueAssignment();
@@ -114,18 +108,7 @@ namespace GameNodes
 
         public override void Operation()
         {
-            switch (baseValue.type)
-            {
-                case NodeValueType.Double:
-                    MathOperation(numberA.AsDouble(), numberB.AsDouble());
-                    break;
-                case NodeValueType.Float:
-                    MathOperation(numberA.AsFloat(), numberB.AsFloat());
-                    break;
-                case NodeValueType.Int:
-                    MathOperation(numberA.AsInt(), numberB.AsInt());
-                    break;
-            }
+            MathOperation(numberA.AsDouble(), numberB.AsDouble());
 
             Debug.Log("Base Value in Math Node: " + baseValue.ToString());
             base.Operation();
@@ -151,44 +134,6 @@ namespace GameNodes
             }
         }
 
-        public void MathOperation(float numA, float numB)
-        {
-            switch (operation)
-            {
-                case MathOperations.Add:
-                    baseValue.CastFloat((numA + numB));
-                    break;
-                case MathOperations.Subtract:
-                    baseValue.CastFloat((numA - numB));
-                    break;
-                case MathOperations.Multiply:
-                    baseValue.CastFloat((numA * numB));
-                    break;
-                case MathOperations.Divide:
-                    baseValue.CastFloat((numA / numB));
-                    break;
-            }
-
-        }
-
-        public void MathOperation(int numA, int numB)
-        {
-            switch (operation)
-            {
-                case MathOperations.Add:
-                    baseValue.CastInt((numA + numB));
-                    break;
-                case MathOperations.Subtract:
-                    baseValue.CastInt((numA - numB));
-                    break;
-                case MathOperations.Multiply:
-                    baseValue.CastInt((numA * numB));
-                    break;
-                case MathOperations.Divide:
-                    baseValue.CastInt((numA / numB));
-                    break;
-            }
-        }
 
         public override string ToString()
         {
@@ -204,7 +149,7 @@ namespace GameNodes
             inputfields[0] = new();
             inputfields[0].name = name;
 
-            if (valueType == NodeValueType.Double || valueType == NodeValueType.Float || valueType == NodeValueType.Int)
+            if (valueType == NodeValueType.Double)
             {
                 inputfields[0].fieldInputType = FieldInput.Number;
             }
@@ -251,6 +196,72 @@ namespace GameNodes
         public override void ValueAssignment()
         {
             throw new System.NotImplementedException();
+        }
+    }
+
+    public class StatementNode : BaseNode
+    {
+        public StatementNode(string name, NodeValueType valueType) : base(name, 1, 1)
+        {
+
+        }
+
+        public override void Operation()
+        {
+
+        }
+
+        public override void ValueAssignment()
+        {
+            baseValue = inputfields[0].nodeRefs[0].baseValue;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+
+
+    public class ConditionNode : BaseNode
+    {
+        public ConditionNode(string name, NodeValueType valueType) : base(name, 1, 1)
+        {
+
+        }
+
+        public override void Operation()
+        {
+
+        }
+
+        public override void ValueAssignment()
+        {
+            baseValue = inputfields[0].nodeRefs[0].baseValue;
+        }
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+
+    public class LoopNode : BaseNode
+    {
+
+
+        public override void Operation()
+        {
+
+        }
+
+        public override void ValueAssignment()
+        {
+
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
         }
     }
 
@@ -410,5 +421,43 @@ namespace GameNodes
             }
         }
 
- 
+         public void MathOperation(float numA, float numB)
+        {
+            switch (operation)
+            {
+                case MathOperations.Add:
+                    baseValue.CastFloat((numA + numB));
+                    break;
+                case MathOperations.Subtract:
+                    baseValue.CastFloat((numA - numB));
+                    break;
+                case MathOperations.Multiply:
+                    baseValue.CastFloat((numA * numB));
+                    break;
+                case MathOperations.Divide:
+                    baseValue.CastFloat((numA / numB));
+                    break;
+            }
+
+        }
+
+        public void MathOperation(int numA, int numB)
+        {
+            switch (operation)
+            {
+                case MathOperations.Add:
+                    baseValue.CastInt((numA + numB));
+                    break;
+                case MathOperations.Subtract:
+                    baseValue.CastInt((numA - numB));
+                    break;
+                case MathOperations.Multiply:
+                    baseValue.CastInt((numA * numB));
+                    break;
+                case MathOperations.Divide:
+                    baseValue.CastInt((numA / numB));
+                    break;
+            }
+        }
+
  */

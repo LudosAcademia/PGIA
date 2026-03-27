@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Callbacks;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ public class PlaygroundManager : MonoBehaviour
     [SerializeField] private GridManager gridManager;
     [SerializeField] private GameObject gridContainer;
     [SerializeField] private GameObject vCam;
+    [SerializeField] private InputManager inputManager;
 
     public GridManager GridManager { get => gridManager; set => gridManager = value; }
 
@@ -28,15 +30,61 @@ public class PlaygroundManager : MonoBehaviour
     public static event Action OnStartLogicManagement;
     public static event Action OnEndLogicManagement;
 
+    public static event Action OnItemCreateStart;
+    public static event Action OnItemCreateEnd;
+
+    public static event Action OnEventCreateStart;
+    public static event Action<PlaygroundGrid> OnEventCreateWorldPanel;
+    public static event Action OnEventCreateEnd;
+
+    public static event Action OnStartEventItemPanel;
+    public static event Action OnEndEventItemPanel;
+
+
+    public void OnOpenEventItemPanel()
+    {
+        OnStartEventItemPanel?.Invoke();
+        vCam.SetActive(false);
+
+    }
+
+    public void OnCloseEventItemPanel()
+    {
+        OnEndEventItemPanel?.Invoke();
+        vCam.SetActive(true);
+    }
+
+    public void OnItemCreateOpen()
+    {
+        OnItemCreateStart?.Invoke();
+    }
+
+    public void OnItemCreateClose()
+    {
+        OnItemCreateStart?.Invoke();
+    }
+
+    public void OnEventCreateOpen()
+    {
+        OnEventCreateStart?.Invoke();
+        OnEventCreateWorldPanel?.Invoke(gridManager.PlaygroundGrid);
+    }
+
+    public void OnEventCreateClose()
+    {
+        OnEventCreateEnd?.Invoke();
+    }
 
     public void OnLogicManagementOpen()
     {
-        OnStartLogicManagement?.Invoke();
+        OnItemCreateEnd?.Invoke();
+        vCam.SetActive(false);
     }
 
     public void OnLogicManagementClose()
     {
         OnEndLogicManagement?.Invoke();
+        vCam.SetActive(true);
     }
 
     public void CloseBlockPanel()

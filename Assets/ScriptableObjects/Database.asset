@@ -17,9 +17,19 @@ MonoBehaviour:
     <ID>k__BackingField: 0
     <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: 7a86f95bf7345a34aab4e51989a799ef, type: 3}
     <Interaction>k__BackingField: 4
-    <TileLevel>k__BackingField: 0
   - <Name>k__BackingField: Chair
     <ID>k__BackingField: 1
     <Prefab>k__BackingField: {fileID: 1097726481970245640, guid: 7ff30ae1864b33d4c83dc0b9e57b9a92, type: 3}
     <Interaction>k__BackingField: 4
-    <TileLevel>k__BackingField: 1
+  - <Name>k__BackingField: Actor
+    <ID>k__BackingField: 2
+    <Prefab>k__BackingField: {fileID: 1811766248606365968, guid: 96794e205ffad644ea89c0066a0e45f4, type: 3}
+    <Interaction>k__BackingField: 0
+  - <Name>k__BackingField: Input
+    <ID>k__BackingField: 3
+    <Prefab>k__BackingField: {fileID: 317304979405816993, guid: e04f7b62e73eae047818436a7a11cc71, type: 3}
+    <Interaction>k__BackingField: 1
+  - <Name>k__BackingField: Output
+    <ID>k__BackingField: 4
+    <Prefab>k__BackingField: {fileID: 6984671627724286027, guid: 5a72db8b7351c6a40af1ce4ff831049a, type: 3}
+    <Interaction>k__BackingField: 2

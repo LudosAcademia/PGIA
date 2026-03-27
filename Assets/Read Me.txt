@@ -6,6 +6,12 @@ Active Issues:
 #while user is in selection mode if they click on remove button it doesnt put them out of the selection mode resulting in a visual and logical 
 	bug where the remove system doesnt work but it looks selected
 
+#the nodeUIScale doesnt work properly, it is disabled for the prototype.
+#check the node field logic an output field can have multiple connections while a input field can only have one connection to an output,
+logic might be reversed in the backend
+#change node selection: multiple nodes cannot be selected fix the visual bug.
+
+
 #ROTATION DOESNT WORK!!!!
 
 #apply for jobs

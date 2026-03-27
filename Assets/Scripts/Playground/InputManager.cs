@@ -51,10 +51,13 @@ public class InputManager : MonoBehaviour
         inputSystem.PlacementInput.Escape.started -= EspaceClicked;
         inputSystem.PlacementInput.Debug.performed -= DebugPressed;
         inputSystem.PlacementInput.MouseRightClick.performed -= MouseRightClicked;
-
-
     }
 
+
+    public void ToggleVirCameraControls(bool set)
+    {
+        toggleVirtualCamera = set;
+    }
 
     private void ZoomCamera()
     {
@@ -104,7 +107,6 @@ public class InputManager : MonoBehaviour
         else
         {
             vCamAxisController.enabled = false;
-
         }
     }
 

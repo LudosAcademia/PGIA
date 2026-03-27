@@ -191,13 +191,13 @@ public class GraphCurve : Graphic, IPointerEnterHandler, IPointerExitHandler
     public void OnPointerEnter(PointerEventData eventData)
     {
         UpdateLineColor(Color.yellow);
-        Debug.Log("In Line");
+        //Debug.Log("In Line");
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         UpdateLineColor(Color.white);
-        Debug.Log("Out Line");
+        //Debug.Log("Out Line");
     }
 
 

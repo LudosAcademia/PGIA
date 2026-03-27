@@ -14,8 +14,6 @@ public class NodeConnect : MonoBehaviour
     [HideInInspector] public bool toggleLineUpdate = false;
     private bool toggleEmptyPoint = true;
     [HideInInspector] public NodeFieldFlag nodeFieldFlag;
-    private GameObject currentLine;
-
 
     private void Start()
     {
@@ -27,7 +25,7 @@ public class NodeConnect : MonoBehaviour
         if (!toggleLineUpdate) { return; }
 
         MoveEmptyPoint(toggleEmptyPoint);
-        UpdateLine(currentLine);
+        UpdateLine();
     }
 
     public void StartNodeConnect(RectTransform startPoint, NodeFieldFlag flag)
@@ -62,7 +60,6 @@ public class NodeConnect : MonoBehaviour
             pointB = emptyPoint.GetComponent<RectTransform>();
         }
 
-        currentLine = gameObject;
         GetComponent<GraphCurve>().UpdateLine(GetLocalPosInLineParent(pointA), GetLocalPosInLineParent(pointB));
         toggleLineUpdate = true;
     }
@@ -107,11 +104,15 @@ public class NodeConnect : MonoBehaviour
         return localPos;
     }
 
-    public void UpdateLine(GameObject line)
+    public void UpdateLine()
     {
         GetComponent<GraphCurve>().UpdateLine(GetLocalPosInLineParent(pointA), GetLocalPosInLineParent(pointB));
     }
 
+    public void UpdateLineColor(Color color)
+    {
+        GetComponent<GraphCurve>().UpdateLineColor(color);
+    }
 
 }
 

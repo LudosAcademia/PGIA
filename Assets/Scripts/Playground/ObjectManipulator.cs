@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UIElements;
 
 public class ObjectManipulator : MonoBehaviour
 {
@@ -20,6 +19,18 @@ public class ObjectManipulator : MonoBehaviour
 
             string layer = gridManager.CurrentGridLayer;
             gridManager.PlaygroundGrid.grid[layer].visuals[gridPosition.x, gridPosition.z] = newobj;
+
+            if (gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Interaction != GameEnums.InteractType.None)
+            {
+                AvaItemPreBuild newItem = new AvaItemPreBuild();
+                newItem.layer = layer;
+                newItem.index = gridManager.PlaygroundGrid.grid[layer].data[gridPosition.x, gridPosition.z].index;
+                newItem.containId = gridManager.ObjectsDatabase.objectData[selectedObjectIndex].ID;
+                newItem.type = gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Interaction;
+                newItem.itemId = new System.Guid();
+                newItem.itemName = gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Name;
+                gridManager.PlaygroundGrid.logicReadyItems.Add(newItem);
+            }
 
             //int index = gridManager.GridData.GetTileIndex(gridPosition.x, gridPosition.z, layer);
         }
@@ -90,7 +101,7 @@ public class ObjectManipulator : MonoBehaviour
         int rotY = gridManager.PlaygroundGrid.grid[layer].data[oldGridPosition.x, oldGridPosition.z].rotY;
 
         gridManager.PlaygroundGrid.grid[layer].data[newGridPosition.x, newGridPosition.z].containId = containId;
-        gridManager.PlaygroundGrid.grid[layer].data[newGridPosition.x, newGridPosition.z].rotY  = rotY;
+        gridManager.PlaygroundGrid.grid[layer].data[newGridPosition.x, newGridPosition.z].rotY = rotY;
 
 
         GameObject newObj = Instantiate(currentGameObject);

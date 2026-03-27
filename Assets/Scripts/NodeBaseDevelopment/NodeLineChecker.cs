@@ -103,7 +103,7 @@ public class NodeLineChecker : MonoBehaviour
         //Debug.Log(A);
         //Debug.Log(A1 + A2 + A3 + A4);
         bool result = (A == total);
-        Debug.Log("result: " + result);
+        //Debug.Log("result: " + result);
         return Mathf.Abs(A - total) < 0.01f;
     }
 
@@ -112,7 +112,38 @@ public class NodeLineChecker : MonoBehaviour
         return (float)Math.Abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0);
     }
 
-    private void SelectLine(MousePointNodeConnectLine[] nodeCons)
+    public int SelectLine()
+    {
+        MousePointNodeConnectLine[] nodeCons = MouseOverLine();
+
+        if (nodeCons == null) { return -1; }
+        bool lineNotFound = false;
+
+        for (int i = 0; i < nodeCons.Length; i++)
+        {
+            if (nodeCons[i].mouseOnLine)
+            {
+                nodeCons[i].line.nodeConnectVisual.GetComponent<GraphCurve>().UpdateLineColor(Color.yellow);                
+                return i;
+            }
+            else
+            {
+                lineNotFound = true;
+            }
+        }
+
+        if (lineNotFound)
+        {
+            foreach (var con in nodeCons)
+            {
+                con.line.nodeConnectVisual.GetComponent<GraphCurve>().UpdateLineColor(Color.white);
+            }
+        }
+
+        return -1;
+    }
+
+    private void OldSelectLine(MousePointNodeConnectLine[] nodeCons)
     {
         if (nodeCons == null) { return; }
         bool lineNotFound = false;
@@ -143,7 +174,7 @@ public class NodeLineChecker : MonoBehaviour
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             if (MouseOverLine() == null) { return; }
-            SelectLine(MouseOverLine());
+            OldSelectLine(MouseOverLine());
 
         }
     }
@@ -153,7 +184,7 @@ public class NodeLineChecker : MonoBehaviour
 
 public class MousePointNodeConnectLine
 {
-    public NodeConnectLine line;
+    public NodeConnectData line;
     public bool mouseOnLine;
 }
 

@@ -40,34 +40,17 @@ public struct NodeValue
     private string text;
 
     public double AsDouble() => number;
-    public int AsInt() => (int)number;
-    public float AsFloat() => (float)number;
     public bool AsBool() => boolean;
     public string AsString() => text;
 
     public void CastDouble(double num) => number = num;
-    public void CastInt(int num) => number = num;
-    public void CastFloat(float num) => number = num;
     public void CastBoolean(bool bol) => boolean = bol;
     public void CastText(string txt) => text = txt;
 
     public override string ToString()
     {
         string number = string.Empty;
-
-        switch (type)
-        {
-            case NodeValueType.Double:
-                number = " Double: " + AsDouble() + " ";
-                break;
-            case NodeValueType.Float:
-                number = " Float: " + AsFloat() + " ";
-                break;
-            case NodeValueType.Int:
-                number = " Int: " + AsInt() + " ";
-                break;
-        }
-
+        number = " Double: " + AsDouble() + " ";
         return "The Number As Double: " + number + " The Text: " + AsString() + " The Boolean " + AsBool() + " " + base.ToString();
     }
 

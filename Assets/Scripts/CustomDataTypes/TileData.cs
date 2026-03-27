@@ -1,5 +1,6 @@
 using System;
 
+//For writing data in msql database
 [Serializable]
 public class TileData
 {

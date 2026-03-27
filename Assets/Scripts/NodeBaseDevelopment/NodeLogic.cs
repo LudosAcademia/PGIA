@@ -51,7 +51,6 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         LogicManager.OnDeselectNodes -= DeSelectThisNode;
     }
 
-
     public void InitilizeNode()
     {
         if (node == null)
@@ -131,7 +130,6 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
         FindChildWithTag(transform, "NodeName").GetComponent<TextMeshProUGUI>().text = node.nodeData.name + " " + nodeIndex;
     }
-
 
     public GameObject FindChildWithTag(Transform parent, string tag)
     {

@@ -45,6 +45,7 @@ namespace GameEnums
         IntValueNode = 6,
         StringValueNode = 7,
         BooleanValueNode = 8,
+        ExecuteNode = 9,
     }
 
 
@@ -85,5 +86,20 @@ namespace GameEnums
         OutputRef,
     }
 
+
+    public enum NodeUISides
+    {
+        left,
+        right,
+        top,
+        bottom
+    }
+
+    public enum ItemType
+    {
+        Actor = 0,
+        Input = 1,
+        Output = 2,
+    }
 
 }

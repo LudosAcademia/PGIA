@@ -72,6 +72,16 @@ public class PlaygroundUI : MonoBehaviour
     [Space(10)]
 
 
+    [Header("Logic Manipulation Panel: ")]
+    [SerializeField] private GameObject itemManipulationPanel;
+    [SerializeField] private GameObject eventManipulationPanel;
+    [SerializeField] private GameObject logicManipulatePanel;
+    [SerializeField] private GameObject worldItemsPanel;
+    [SerializeField] private GameObject worldItemUIPrefab;
+    [SerializeField] private RectTransform worldItemDragParent;
+    [Space(10)]
+
+
     //[SerializeField] private PlaygroundManager playgroundManager;
 
     private string username;
@@ -105,6 +115,14 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnStartPlaygroundDelete += OpenConfirmationDelete;
         PlaygroundManager.OnCancelPlaygroundDelete += CloseConfirmationDelete;
         PlaygroundManager.OnEndPlaygroundDelete += CloseConfirmationDelete;
+        PlaygroundManager.OnItemCreateStart += OpenItemManipulationPanel;
+        PlaygroundManager.OnEventCreateStart += OpenEventManipulationPanel;
+        PlaygroundManager.OnEventCreateWorldPanel += SetWorldItemsPanel;
+
+        PlaygroundManager.OnItemCreateEnd += CloseItemManipulationPanel;
+        PlaygroundManager.OnEventCreateEnd += CloseEventManipulationPanel;
+        PlaygroundManager.OnStartEventItemPanel += OpenLogicManipulatePanel;
+        PlaygroundManager.OnEndEventItemPanel += CloseLogicManipulatePanel;
 
         ServerClient.OnServerWait += OpenServerBlockPanel;
         ServerClient.PlaygroundSaved += AddPlaygroundToView;
@@ -142,7 +160,13 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnStartPlaygroundDelete -= OpenConfirmationDelete;
         PlaygroundManager.OnCancelPlaygroundDelete -= CloseConfirmationDelete;
         PlaygroundManager.OnEndPlaygroundDelete -= CloseConfirmationDelete;
-
+        PlaygroundManager.OnItemCreateStart -= OpenItemManipulationPanel;
+        PlaygroundManager.OnEventCreateStart -= OpenEventManipulationPanel;
+        PlaygroundManager.OnItemCreateEnd -= CloseItemManipulationPanel;
+        PlaygroundManager.OnEventCreateEnd -= CloseEventManipulationPanel;
+        PlaygroundManager.OnStartEventItemPanel -= OpenLogicManipulatePanel;
+        PlaygroundManager.OnEndEventItemPanel -= CloseLogicManipulatePanel;
+        PlaygroundManager.OnEventCreateWorldPanel -= SetWorldItemsPanel;
 
         ServerClient.OnServerWait -= OpenServerBlockPanel;
         ServerClient.PlaygroundSaved -= AddPlaygroundToView;
@@ -163,6 +187,35 @@ public class PlaygroundUI : MonoBehaviour
         GridManager.OnGridConstFinished -= TriggerAllTools;
 
         SettingsManager.OnSettingsToggle -= ToggleSettingsPanel;
+    }
+
+    private void OpenLogicManipulatePanel()
+    {
+        logicManipulatePanel.SetActive(true);
+    }
+
+    private void CloseLogicManipulatePanel()
+    {
+        logicManipulatePanel.SetActive(false);
+    }
+
+    private void OpenItemManipulationPanel()
+    {
+        itemManipulationPanel.SetActive(true);
+    }
+
+    private void CloseItemManipulationPanel()
+    {
+        itemManipulationPanel.SetActive(false);
+    }
+
+    private void OpenEventManipulationPanel()
+    {
+        eventManipulationPanel.SetActive(true);
+    }
+    private void CloseEventManipulationPanel()
+    {
+        eventManipulationPanel.SetActive(false);
     }
 
     private void OpenConfirmationDelete()
@@ -489,7 +542,6 @@ public class PlaygroundUI : MonoBehaviour
         }
     }
 
-
     private void SetToolsText(string[] tools)
     {
         subjectHeaderText = "Layer: " + tools[0] + "\n"
@@ -520,6 +572,35 @@ public class PlaygroundUI : MonoBehaviour
             optionsData.Add(option);
         }
         itemDropdownMenu.AddOptions(optionsData);
+    }
+
+    private void SetWorldItemsPanel(PlaygroundGrid playgroundGrid)
+    {
+
+        List<AvaItemPreBuild> worldItems = playgroundGrid.logicReadyItems;
+
+        if (worldItemsPanel.transform.childCount != 0)
+        {
+            for (int i = 0; i < worldItemsPanel.transform.childCount; i++)
+            {
+                Destroy(worldItemsPanel.transform.GetChild(i).gameObject);
+            }
+        }
+
+        if (worldItems.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var item in worldItems)
+        {
+            
+            GameObject newItem = Instantiate(worldItemUIPrefab);
+            newItem.transform.SetParent(worldItemsPanel.transform, false);
+            newItem.GetComponentInChildren<TextMeshProUGUI>().text = item.itemName;
+            newItem.GetComponent<WorldItemRef>().itemRef = item;
+            newItem.GetComponent<WorldItemRef>().parentRectTransform = worldItemDragParent;
+        }
     }
 
     private void SetSelectedTile(bool set, string info)

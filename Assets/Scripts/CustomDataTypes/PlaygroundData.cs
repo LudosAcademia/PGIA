@@ -10,6 +10,8 @@ public class PlaygroundData
     public string plygrd_name;
     public string plygrd_desc;
     public List<TileDataArray> tiles_arrays;
+    public List<EventData> event_data;
+    public List<ItemData> item_data;
     public int plygrd_size;
     public int layer_count;
 
