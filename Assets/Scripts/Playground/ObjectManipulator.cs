@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class ObjectManipulator : MonoBehaviour
 {
@@ -27,9 +28,9 @@ public class ObjectManipulator : MonoBehaviour
                 newItem.index = gridManager.PlaygroundGrid.grid[layer].data[gridPosition.x, gridPosition.z].index;
                 newItem.containId = gridManager.ObjectsDatabase.objectData[selectedObjectIndex].ID;
                 newItem.type = gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Interaction;
-                newItem.itemId = new System.Guid();
+                newItem.itemId = new Guid();
                 newItem.itemName = gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Name;
-                gridManager.PlaygroundGrid.logicReadyItems.Add(newItem);
+                gridManager.PlaygroundGrid.logicReadyItems[newItem.itemId] = newItem;
             }
 
             //int index = gridManager.GridData.GetTileIndex(gridPosition.x, gridPosition.z, layer);

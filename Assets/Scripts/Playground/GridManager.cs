@@ -63,6 +63,8 @@ public class GridManager : MonoBehaviour
         PlaygroundUI.OnItemChange += ChangeCurrenItem;
         PlaygroundUI.OnToolChange += ChangeCurrenTool;
         PlaygroundUI.OnLayerChange += ChangeCurrentLayer;
+
+        ItemManager.OnItemChangeEnd += UpdateSelectedItemUI;
     }
 
     private void OnDisable()
@@ -71,6 +73,8 @@ public class GridManager : MonoBehaviour
         PlaygroundUI.OnItemChange -= ChangeCurrenItem;
         PlaygroundUI.OnToolChange -= ChangeCurrenTool;
         PlaygroundUI.OnLayerChange -= ChangeCurrentLayer;
+        ItemManager.OnItemChangeEnd -= UpdateSelectedItemUI;
+
         ClearBuildTools();
     }
 
@@ -452,14 +456,28 @@ public class GridManager : MonoBehaviour
                 GameObject currentGameobject = playgroundGrid.grid[currentGridLayer].visuals[GetGridPos().x, GetGridPos().z].gameObject;
                 selectionState.OnAction(GetGridPos(), currentGridLayer, currentGameobject);
 
+
                 int id = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].containId;
                 int selectedObjectIndex = objectsDatabase.objectData.FindIndex(data => data.ID == id);
-                string name = objectsDatabase.objectData[selectedObjectIndex].Name;
 
-                string info = "Selected Tile: " + GetGridPos() +
-                    " \nContains: " + name +
-                    " \nID: " + id;
-                OnItemSelected?.Invoke(true, info);
+                if (objectsDatabase.objectData[selectedObjectIndex].Interaction != InteractType.None)
+                {
+                    Guid instanceId = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].instanceId;
+                    string name = playgroundGrid.logicReadyItems[instanceId].itemName;
+                    string info = "Selected Logic Tile: " + GetGridPos() +
+                        " \nContains: " + name;
+                    OnItemSelected?.Invoke(true, info);
+                }
+                else
+                {
+                    string name = objectsDatabase.objectData[selectedObjectIndex].Name;
+
+                    string info = "Selected Tile: " + GetGridPos() +
+                        " \nContains: " + name +
+                        " \nID: " + id;
+                    OnItemSelected?.Invoke(true, info);
+                }
+
             }
             else
             {
@@ -469,6 +487,20 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+
+    private void UpdateSelectedItemUI(bool set)
+    {
+        if (set)
+        {
+            Guid instanceId = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].instanceId;
+            string name = playgroundGrid.logicReadyItems[instanceId].itemName;
+            string info = "Selected Logic Tile: " + GetGridPos() +
+                " \nContains: " + name;
+            OnItemSelected?.Invoke(true, info);
+            //FIX THE VISUAL BUG ON TILE SELECTION: ITEMS NAME DOESNT CHANGE ON DIFF SELECT
+        }
+    }
+
 
     public void MoveObjectStart()
     {

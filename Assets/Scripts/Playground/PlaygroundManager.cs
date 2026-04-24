@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using UnityEditor.Callbacks;
 using UnityEngine;
 
 public class PlaygroundManager : MonoBehaviour
@@ -40,6 +38,12 @@ public class PlaygroundManager : MonoBehaviour
     public static event Action OnStartEventItemPanel;
     public static event Action OnEndEventItemPanel;
 
+    public static event Action OnEditTileItem;
+
+    public void OnEditTileItemButton()
+    {
+        OnEditTileItem?.Invoke();
+    }
 
     public void OnOpenEventItemPanel()
     {
@@ -77,7 +81,7 @@ public class PlaygroundManager : MonoBehaviour
 
     public void OnLogicManagementOpen()
     {
-        OnItemCreateEnd?.Invoke();
+        OnStartLogicManagement?.Invoke();
         vCam.SetActive(false);
     }
 

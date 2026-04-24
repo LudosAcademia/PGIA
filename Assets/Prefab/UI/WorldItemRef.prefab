@@ -87,8 +87,9 @@ GameObject:
   - component: {fileID: 1288836907780295071}
   - component: {fileID: 3082298241287611339}
   - component: {fileID: 8382627771209111599}
+  - component: {fileID: 5982886864048654151}
   m_Layer: 5
-  m_Name: ItemRef
+  m_Name: WorldItemRef
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -166,8 +167,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e46a3985973941d448246cda33af7b81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldItemRef
+  localParent: {fileID: 0}
+  worldParent: {fileID: 0}
   parentRectTransform: {fileID: 0}
+  itemRef: {fileID: 0}
+  inputManager: {fileID: 0}
   selectItem: 0
+--- !u!225 &5982886864048654151
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4292472539299292006}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &7298474066195093543
 GameObject:
   m_ObjectHideFlags: 0

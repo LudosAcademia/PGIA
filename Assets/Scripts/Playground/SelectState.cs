@@ -1,11 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class SelectState : ISelectionState
 {
     PreviewSystem previewSystem;
     PlaygroundGrid gridData;
     ObjectManipulator objectManipulator;
-
+    public static event Action<AvaItemPreBuild> OnTileItemSelect;
 
     private GameObject currentSelectedObject;
     private Vector3Int currentSelectedVector;
@@ -42,6 +43,9 @@ public class SelectState : ISelectionState
             currentSelectedObject = selectedObject;
             currentSelectedVector = gridPosition;
             currentSelectedObjectId = gridData.grid[layer].data[gridPosition.x, gridPosition.z].containId;
+            Guid instanceId = gridData.grid[layer].data[gridPosition.x, gridPosition.z].instanceId;
+            AvaItemPreBuild itemRef = gridData.logicReadyItems[instanceId];
+            OnTileItemSelect?.Invoke(itemRef);
         }
         else
         {

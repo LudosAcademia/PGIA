@@ -79,7 +79,20 @@ public class PlaygroundUI : MonoBehaviour
     [SerializeField] private GameObject worldItemsPanel;
     [SerializeField] private GameObject worldItemUIPrefab;
     [SerializeField] private RectTransform worldItemDragParent;
+    [SerializeField] private InputManager inputManager;
+    [SerializeField] private GameObject UIEvents;
+    [SerializeField] private GameObject worldEventPrefab;
+
     [Space(10)]
+
+    [Header("Tile Item Edit: ")]
+    [SerializeField] private GameObject tileItemEditPanel;
+
+    [Space(10)]
+
+
+
+
 
 
     //[SerializeField] private PlaygroundManager playgroundManager;
@@ -124,6 +137,8 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnStartEventItemPanel += OpenLogicManipulatePanel;
         PlaygroundManager.OnEndEventItemPanel += CloseLogicManipulatePanel;
 
+        PlaygroundManager.OnEditTileItem += OpenTileItemEditPanel;
+
         ServerClient.OnServerWait += OpenServerBlockPanel;
         ServerClient.PlaygroundSaved += AddPlaygroundToView;
         ServerClient.PlaygroundSaved += OpenServerMessageOnCreation;
@@ -144,6 +159,8 @@ public class PlaygroundUI : MonoBehaviour
 
         SettingsManager.OnSettingsToggle += ToggleSettingsPanel;
 
+        EventManager.OnEventCreated += SetEventsInScrollView;
+        ItemManager.OnItemChangeEnd += CloseTileItemEditPanel;
     }
 
     public void UnsubscribeListeners()
@@ -168,6 +185,9 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnEndEventItemPanel -= CloseLogicManipulatePanel;
         PlaygroundManager.OnEventCreateWorldPanel -= SetWorldItemsPanel;
 
+        PlaygroundManager.OnEditTileItem -= OpenTileItemEditPanel;
+
+
         ServerClient.OnServerWait -= OpenServerBlockPanel;
         ServerClient.PlaygroundSaved -= AddPlaygroundToView;
         ServerClient.PlaygroundSaved -= OpenServerMessageOnCreation;
@@ -187,6 +207,25 @@ public class PlaygroundUI : MonoBehaviour
         GridManager.OnGridConstFinished -= TriggerAllTools;
 
         SettingsManager.OnSettingsToggle -= ToggleSettingsPanel;
+
+        EventManager.OnEventCreated -= SetEventsInScrollView;
+        ItemManager.OnItemChangeEnd -= CloseTileItemEditPanel;
+    }
+
+    private void ResetLogicManipulationPanel()
+    {
+        CloseEventManipulationPanel();
+        CloseItemManipulationPanel();
+    }
+
+    private void OpenTileItemEditPanel()
+    {
+        tileItemEditPanel.SetActive(true);
+    }
+
+    private void CloseTileItemEditPanel(bool set)
+    {
+        tileItemEditPanel.SetActive(false);
     }
 
     private void OpenLogicManipulatePanel()
@@ -197,6 +236,7 @@ public class PlaygroundUI : MonoBehaviour
     private void CloseLogicManipulatePanel()
     {
         logicManipulatePanel.SetActive(false);
+        ResetLogicManipulationPanel();
     }
 
     private void OpenItemManipulationPanel()
@@ -576,8 +616,8 @@ public class PlaygroundUI : MonoBehaviour
 
     private void SetWorldItemsPanel(PlaygroundGrid playgroundGrid)
     {
-
-        List<AvaItemPreBuild> worldItems = playgroundGrid.logicReadyItems;
+        Dictionary<Guid, AvaItemPreBuild> worldItems = playgroundGrid.logicReadyItems;
+        //List <AvaItemPreBuild> 
 
         if (worldItemsPanel.transform.childCount != 0)
         {
@@ -592,14 +632,44 @@ public class PlaygroundUI : MonoBehaviour
             return;
         }
 
+        int j = 0;
         foreach (var item in worldItems)
         {
-            
             GameObject newItem = Instantiate(worldItemUIPrefab);
             newItem.transform.SetParent(worldItemsPanel.transform, false);
-            newItem.GetComponentInChildren<TextMeshProUGUI>().text = item.itemName;
-            newItem.GetComponent<WorldItemRef>().itemRef = item;
+            newItem.GetComponentInChildren<TextMeshProUGUI>().text = item.Value.itemName + " " + j;
+            newItem.GetComponent<WorldItemRef>().localParent = worldItemsPanel.transform;
+            newItem.GetComponent<WorldItemRef>().worldParent = worldItemDragParent;
+            newItem.GetComponent<WorldItemRef>().baseParent = worldItemsPanel.transform;
+            newItem.GetComponent<WorldItemRef>().itemRef = item.Value;
             newItem.GetComponent<WorldItemRef>().parentRectTransform = worldItemDragParent;
+            newItem.GetComponent<WorldItemRef>().inputManager = inputManager;
+            j++;
+        }
+    }
+
+    private void SetEventsInScrollView()
+    {
+
+        if (UIEvents.transform.childCount != 0)
+        {
+            for (int i = 0; i < UIEvents.transform.childCount; i++)
+            {
+                Destroy(UIEvents.transform.GetChild(i).gameObject);
+            }
+        }
+
+        int playgroundIndex = GameManager.Instance.GameData.currentUser.curr_ply_index;
+        List<EventData> events = GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].event_data;
+        //worldEventPrefab
+
+        for (int i = 0; i < events.Count; i++)
+        {
+            GameObject newEventRef = Instantiate(worldEventPrefab);
+            newEventRef.GetComponent<WorldEventRef>().inputManager = inputManager;
+            newEventRef.GetComponentInChildren<TextMeshProUGUI>().text = events[i].name;
+            newEventRef.GetComponent<WorldEventRef>().thisEvent = events[i];
+            newEventRef.transform.SetParent(UIEvents.transform, false);
         }
     }
 

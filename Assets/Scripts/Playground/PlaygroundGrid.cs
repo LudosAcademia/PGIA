@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,9 +6,8 @@ public class PlaygroundGrid : MonoBehaviour
 {
     public Dictionary<string, GridLayer> grid;
     public List<string> gridLayerKeys;
-    public List<AvaItemPreBuild> logicReadyItems;
+    public Dictionary<Guid, AvaItemPreBuild> logicReadyItems;
     private int gridSize;
-    
 
     public int GridSize { get => gridSize; set => gridSize = value; }
 
@@ -112,6 +112,7 @@ public class GridTile
     public int rotY;
     public int index;
     public int containId;
+    public Guid instanceId;
 
     public GridTile()
     {

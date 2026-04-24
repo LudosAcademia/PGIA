@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -9,15 +10,31 @@ public class ItemManager : MonoBehaviour
     [SerializeField] private TMP_InputField itemName;
     [SerializeField] private TMP_Dropdown itemType;
 
-    private void Awake()
+    [SerializeField] private TMP_InputField newItemNameDesktop;
+    [SerializeField] private TMP_InputField newItemNameMobile;
+    private AvaItemPreBuild currentItem;
+    public static event Action<bool> OnItemChangeEnd;
+
+    private void OnEnable()
     {
-        //AssignPrefabs();
+        SelectState.OnTileItemSelect += SetCurrentItem;
+    }
+
+    private void OnDisable()
+    {
+        SelectState.OnTileItemSelect -= SetCurrentItem;
+    }
+
+    private void SetCurrentItem(AvaItemPreBuild itemRef)
+    {
+        currentItem = itemRef;
+        Debug.Log("Item ref has been assigned");
     }
 
     public void CreateNewItem()
     {
         ItemData itemData = new ItemData();
-        
+
 
 
         int playgroundIndex = GameManager.Instance.GameData.currentUser.curr_ply_index;
@@ -44,5 +61,34 @@ public class ItemManager : MonoBehaviour
 
     }
 
+    public void ApplyItemChangeDesktop()
+    {
+        if (string.IsNullOrEmpty(newItemNameDesktop.text))
+        {
+            Debug.LogError("Name cannot be empty");
+            return;
+        }
+
+        currentItem.itemName = newItemNameDesktop.text;
+        OnItemChangeEnd?.Invoke(true);
+    }
+
+    public void ApplyItemChangeMobile()
+    {
+        if (string.IsNullOrEmpty(newItemNameMobile.text))
+        {
+            Debug.LogError("Name cannot be empty");
+            return;
+        }
+
+        currentItem.itemName = newItemNameMobile.text;
+        OnItemChangeEnd?.Invoke(true);
+    }
+
+
+    public void CancelItemChange()
+    {
+        OnItemChangeEnd?.Invoke(false);
+    }
 }
 
