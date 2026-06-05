@@ -32,14 +32,14 @@ public class OverUITrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public void OnPointerEnter(PointerEventData eventData)
     {
         OnOverUI?.Invoke(gameObject, true);
-        Debug.Log("Inside UI");
+        //Debug.Log("Inside UI");
         highlight.color = highlightColor;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         OnOverUI?.Invoke(gameObject, false);
-        Debug.Log("Outside UI");
+        //Debug.Log("Outside UI");
         highlight.color = mainColor;
     }
 

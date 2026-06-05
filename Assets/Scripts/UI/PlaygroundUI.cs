@@ -35,10 +35,15 @@ public class PlaygroundUI : MonoBehaviour
     [Header("Selection Panel: ")]
     [SerializeField] private GameObject selectionPanel;
     [SerializeField] private GameObject selectedTilePanel;
+    [SerializeField] private GameObject editItemButton;
     [SerializeField] private GameObject editInfoPanel;
     [SerializeField] private GameObject editSelectedButtonsPanel;
     [Space(5)]
 
+    [Header("Tile Item Edit: ")]
+    [SerializeField] private GameObject tileItemEditPanel;
+
+    [Space(10)]
 
     [Header("Input Fields: ")]
     [SerializeField] private TMP_InputField playgroundName;
@@ -58,7 +63,6 @@ public class PlaygroundUI : MonoBehaviour
     [SerializeField] private TMP_Dropdown toolDropdownMenu;
     [SerializeField] private TMP_Dropdown layerDropdownMenu;
     [SerializeField] private TMP_Dropdown playgroundSize;
-
     [Space(5)]
 
     [Header("Default Header Name: ")]
@@ -82,15 +86,9 @@ public class PlaygroundUI : MonoBehaviour
     [SerializeField] private InputManager inputManager;
     [SerializeField] private GameObject UIEvents;
     [SerializeField] private GameObject worldEventPrefab;
-
+    [SerializeField] private GameObject logicEditConfirmPanel;
+    [SerializeField] private TextMeshProUGUI logicEditConfirmEventName;
     [Space(10)]
-
-    [Header("Tile Item Edit: ")]
-    [SerializeField] private GameObject tileItemEditPanel;
-
-    [Space(10)]
-
-
 
 
 
@@ -138,6 +136,7 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnEndEventItemPanel += CloseLogicManipulatePanel;
 
         PlaygroundManager.OnEditTileItem += OpenTileItemEditPanel;
+        PlaygroundManager.OnCancelLogicManagement += CloseLogicEditConfirmPanel;
 
         ServerClient.OnServerWait += OpenServerBlockPanel;
         ServerClient.PlaygroundSaved += AddPlaygroundToView;
@@ -160,7 +159,11 @@ public class PlaygroundUI : MonoBehaviour
         SettingsManager.OnSettingsToggle += ToggleSettingsPanel;
 
         EventManager.OnEventCreated += SetEventsInScrollView;
+
         ItemManager.OnItemChangeEnd += CloseTileItemEditPanel;
+
+        WorldEventRef.OnStartLogicEditConfirm += OpenLogicEditConfirmPanel;
+        WorldEventRef.OnEndLogicEditConfirm += CloseLogicEditConfirmPanel;
     }
 
     public void UnsubscribeListeners()
@@ -186,6 +189,7 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnEventCreateWorldPanel -= SetWorldItemsPanel;
 
         PlaygroundManager.OnEditTileItem -= OpenTileItemEditPanel;
+        PlaygroundManager.OnCancelLogicManagement -= CloseLogicEditConfirmPanel;
 
 
         ServerClient.OnServerWait -= OpenServerBlockPanel;
@@ -210,7 +214,23 @@ public class PlaygroundUI : MonoBehaviour
 
         EventManager.OnEventCreated -= SetEventsInScrollView;
         ItemManager.OnItemChangeEnd -= CloseTileItemEditPanel;
+
+        WorldEventRef.OnStartLogicEditConfirm -= OpenLogicEditConfirmPanel;
+        WorldEventRef.OnEndLogicEditConfirm -= CloseLogicEditConfirmPanel;
     }
+
+    private void OpenLogicEditConfirmPanel(string text)
+    {
+        logicEditConfirmPanel.SetActive(true);
+        logicEditConfirmEventName.text = text;
+        //logicEditConfirmPanel.GetComponentInChildren<TextMeshProUGUI>().text = text;
+    }
+
+    private void CloseLogicEditConfirmPanel()
+    {
+        logicEditConfirmPanel.SetActive(false);
+    }
+
 
     private void ResetLogicManipulationPanel()
     {
@@ -635,15 +655,18 @@ public class PlaygroundUI : MonoBehaviour
         int j = 0;
         foreach (var item in worldItems)
         {
-            GameObject newItem = Instantiate(worldItemUIPrefab);
-            newItem.transform.SetParent(worldItemsPanel.transform, false);
-            newItem.GetComponentInChildren<TextMeshProUGUI>().text = item.Value.itemName + " " + j;
-            newItem.GetComponent<WorldItemRef>().localParent = worldItemsPanel.transform;
-            newItem.GetComponent<WorldItemRef>().worldParent = worldItemDragParent;
-            newItem.GetComponent<WorldItemRef>().baseParent = worldItemsPanel.transform;
-            newItem.GetComponent<WorldItemRef>().itemRef = item.Value;
-            newItem.GetComponent<WorldItemRef>().parentRectTransform = worldItemDragParent;
-            newItem.GetComponent<WorldItemRef>().inputManager = inputManager;
+            if (item.Value.avalible)
+            {
+                GameObject newItem = Instantiate(worldItemUIPrefab);
+                newItem.transform.SetParent(worldItemsPanel.transform, false);
+                newItem.GetComponentInChildren<TextMeshProUGUI>().text = item.Value.itemName + " " + j;
+                newItem.GetComponent<WorldItemRef>().localParent = worldItemsPanel.transform;
+                newItem.GetComponent<WorldItemRef>().worldParent = worldItemDragParent;
+                newItem.GetComponent<WorldItemRef>().baseParent = worldItemsPanel.transform;
+                newItem.GetComponent<WorldItemRef>().itemRef = item.Value;
+                newItem.GetComponent<WorldItemRef>().parentRectTransform = worldItemDragParent;
+                newItem.GetComponent<WorldItemRef>().inputManager = inputManager;
+            }
             j++;
         }
     }
@@ -669,13 +692,16 @@ public class PlaygroundUI : MonoBehaviour
             newEventRef.GetComponent<WorldEventRef>().inputManager = inputManager;
             newEventRef.GetComponentInChildren<TextMeshProUGUI>().text = events[i].name;
             newEventRef.GetComponent<WorldEventRef>().thisEvent = events[i];
+            newEventRef.GetComponent<WorldEventRef>().eventIndex = i;
             newEventRef.transform.SetParent(UIEvents.transform, false);
         }
+        CloseLogicManipulatePanel();
     }
 
-    private void SetSelectedTile(bool set, string info)
+    private void SetSelectedTile(bool set, string info, bool interactive)
     {
         selectedTilePanel.SetActive(set);
+        editItemButton.SetActive(interactive);
         selectedTilePanel.GetComponentInChildren<TextMeshProUGUI>().text = info;
     }
 
@@ -685,7 +711,7 @@ public class PlaygroundUI : MonoBehaviour
         editInfoPanel.GetComponentInChildren<TextMeshProUGUI>().text = info;
     }
 
-    private void ToggleSelectedButtons(bool set, string nul)
+    private void ToggleSelectedButtons(bool set, string nul, bool interaction)
     {
         editSelectedButtonsPanel.SetActive(set);
         if (!set)

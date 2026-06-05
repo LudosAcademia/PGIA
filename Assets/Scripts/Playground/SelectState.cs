@@ -4,7 +4,7 @@ using UnityEngine;
 public class SelectState : ISelectionState
 {
     PreviewSystem previewSystem;
-    PlaygroundGrid gridData;
+    GridManager gridManager;
     ObjectManipulator objectManipulator;
     public static event Action<AvaItemPreBuild> OnTileItemSelect;
 
@@ -14,10 +14,10 @@ public class SelectState : ISelectionState
 
     public int selectedObjectIndex = -1;
 
-    public SelectState(PreviewSystem previewSystem, PlaygroundGrid gridData, ObjectManipulator objectManipulator)
+    public SelectState(PreviewSystem previewSystem, GridManager gridManager, ObjectManipulator objectManipulator)
     {
         this.previewSystem = previewSystem;
-        this.gridData = gridData;
+        this.gridManager = gridManager;
         this.objectManipulator = objectManipulator;
 
         this.previewSystem.StartShowingCursor(Vector2Int.one);
@@ -37,15 +37,29 @@ public class SelectState : ISelectionState
         //Debug.Log("Selected Pos in Grid: " + gridPosition);
         previewSystem.StartHighlightSelectedTile(gridPosition);
 
-        if (gridData.grid[layer].data[gridPosition.x, gridPosition.z].containId != -1)
+        if (gridManager.PlaygroundGrid.grid[layer].data[gridPosition.x, gridPosition.z].containId != -1)
         {
             //Debug.Log("Grid Base: " + gridData.gridLayers[layer][gridPosition.x, gridPosition.z].containId);
             currentSelectedObject = selectedObject;
             currentSelectedVector = gridPosition;
-            currentSelectedObjectId = gridData.grid[layer].data[gridPosition.x, gridPosition.z].containId;
-            Guid instanceId = gridData.grid[layer].data[gridPosition.x, gridPosition.z].instanceId;
-            AvaItemPreBuild itemRef = gridData.logicReadyItems[instanceId];
-            OnTileItemSelect?.Invoke(itemRef);
+            currentSelectedObjectId = gridManager.PlaygroundGrid.grid[layer].data[gridPosition.x, gridPosition.z].containId;
+
+
+            int currObjectId = gridManager.CurrentObjecyId;
+            int selectedObjectIndex = gridManager.ObjectsDatabase.objectData.FindIndex(data => data.ID == currObjectId);
+            Debug.Log(gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Name);
+            Debug.Log(gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Interaction);
+
+            Debug.Log("gridPosition.x, gridPosition.z " + gridPosition.x + " " + gridPosition.z);
+
+            if (gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Interaction != GameEnums.InteractType.None)
+            {
+                Guid instanceId = gridManager.PlaygroundGrid.grid[layer].data[gridPosition.x, gridPosition.z].instanceId;
+                AvaItemPreBuild itemRef = gridManager.PlaygroundGrid.logicReadyItems[instanceId];
+                OnTileItemSelect?.Invoke(itemRef);
+                Debug.Log("Selected Item: " + itemRef.itemName);
+            }
+     
         }
         else
         {

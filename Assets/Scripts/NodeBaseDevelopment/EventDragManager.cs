@@ -40,7 +40,7 @@ public class EventDragManager : MonoBehaviour
 
     private void AssignPlaceholderBox(GameObject curr, bool overUI)
     {
-        Debug.Log("Placeholder: " + curr + " overUI: " + overUI);
+        //Debug.Log("Placeholder: " + curr + " overUI: " + overUI);
         if (curr == null) { return; }
         if (currentWorldItem == null) { return; }
 

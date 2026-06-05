@@ -13,6 +13,7 @@ public class PlaygroundData
     public List<EventData> event_data;
     public List<ItemData> item_data;
     public int plygrd_size;
+    public int curr_evt_index;
     public int layer_count;
 
 

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -9,6 +10,11 @@ public class WorldEventRef : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     Color selectColor;
     public InputManager inputManager;
     public bool selectItem = false;
+    public int eventIndex;
+
+    public static event Action<string> OnStartLogicEditConfirm;
+    public static event Action OnEndLogicEditConfirm;
+
 
 
     private void Awake()
@@ -47,6 +53,14 @@ public class WorldEventRef : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     private void SelectEvent()
     {
         GetComponent<Image>().color = selectColor;
+        //Debug.Log("Event: " + thisEvent.name + ": "+ "\n" + totalEventRefs);
+        OnStartLogicEditConfirm?.Invoke(thisEvent.name);
+    }
+
+    private void DebugPrint()
+    {
+        int playgroundIndex = GameManager.Instance.GameData.currentUser.curr_ply_index;
+        GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].curr_evt_index = eventIndex;
         string actor = " \nActor: " + thisEvent.actorObjectRef.itemName;
         string output = " \nOutput: " + thisEvent.outputObjectRef.itemName;
         string inputs = " \nInputs: ";
@@ -58,11 +72,16 @@ public class WorldEventRef : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
         string totalEventRefs = " Event Refs: \n" + actor + output + inputs;
 
-        Debug.Log("Event: " + thisEvent.name + ": "+ "\n" + totalEventRefs); 
     }
 
     private void DeSelectEvent()
     {
         GetComponent<Image>().color = baseColor;
+        //OnEndLogicEditConfirm?.Invoke();
+    }
+
+    private void OnDestroy()
+    {
+        AssignInput(false);
     }
 }

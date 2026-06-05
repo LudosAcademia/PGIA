@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static TreeEditor.TreeEditorHelper;
 
 public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDragHandler
 {
@@ -12,9 +13,9 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     private LogicManager logicManager;
     private RectTransform rectTransform;
     private RectTransform parentRectTransform;
-    private bool toggleMoveConnect = false;
     private int nodeIndex;
     [HideInInspector] public bool isSelected = false;
+    [HideInInspector] public bool enableOnDrag = true;
     [SerializeField] private GameObject inputFieldPrefab;
     [SerializeField] private GameObject outputFieldPrefab;
     [SerializeField] private Transform inputFieldParent;
@@ -39,6 +40,7 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         parentRectTransform = transform.GetComponentInParent<RectTransform>();
         selectedOutline = GetComponent<Outline>();
         selectedOutline.enabled = false;
+        enableOnDrag = true;
     }
 
     private void OnEnable()
@@ -64,6 +66,7 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             GameObject newInputField = Instantiate(inputFieldPrefab);
             newInputField.transform.SetParent(inputFieldParent, false);
             newInputField.GetComponentInChildren<NodePoint>().LogicManager = logicManager;
+            newInputField.GetComponentInChildren<NodePoint>().NodeLogic = this;
             newInputField.GetComponentInChildren<NodePoint>().nodeData = node;
             newInputField.GetComponentInChildren<NodePoint>().fieldIndex = i;
 
@@ -78,7 +81,7 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
                         int indexText = i;
                         fieldTypeText.GetComponent<TMP_InputField>().onValueChanged.AddListener((e) =>
                         {
-                            ValueChange(indexText, NodeFieldFlag.InputRef, FieldInput.Text);
+                            ValueChange(indexText, NodeFieldFlag.InputRef, FieldInput.Text, node.nodeData.nodeType);
                         });
                         break;
                     case FieldInput.Number:
@@ -87,10 +90,19 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
                         int indexNumber = i;
                         fieldTypeNumber.GetComponent<TMP_InputField>().onValueChanged.AddListener((e) =>
                         {
-                            ValueChange(indexNumber, NodeFieldFlag.InputRef, FieldInput.Number);
+                            ValueChange(indexNumber, NodeFieldFlag.InputRef, FieldInput.Number, node.nodeData.nodeType);
                         });
                         break;
                     case FieldInput.Dropdown:
+                        GameObject fieldTypeDropdown = FindChildWithTag(newInputField.transform, "FieldTypeDropdown");
+                        fieldTypeDropdown.SetActive(true);
+                        int indexDropdown = i;
+                        fieldTypeDropdown.GetComponent<TMP_Dropdown>().onValueChanged.AddListener((e) =>
+                        {
+                            ValueChange(indexDropdown, NodeFieldFlag.InputRef, FieldInput.Dropdown, node.nodeData.nodeType);
+                        });
+                        TMP_Dropdown dropdown = fieldTypeDropdown.GetComponent<TMP_Dropdown>();
+                        DropdownSetup(node.nodeData.nodeType, dropdown);
                         break;
                     case FieldInput.Toggle:
                         GameObject fieldTypeBoolean = FindChildWithTag(newInputField.transform, "FieldTypeToggle");
@@ -98,7 +110,7 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
                         int indexBoolean = i;
                         fieldTypeBoolean.GetComponent<Toggle>().onValueChanged.AddListener((e) =>
                         {
-                            ValueChange(indexBoolean, NodeFieldFlag.InputRef, FieldInput.Number);
+                            ValueChange(indexBoolean, NodeFieldFlag.InputRef, FieldInput.Toggle, node.nodeData.nodeType);
                         });
                         break;
                 }
@@ -118,6 +130,7 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             GameObject newOutputField = Instantiate(outputFieldPrefab);
             newOutputField.transform.SetParent(outputFieldParent, false);
             newOutputField.GetComponentInChildren<NodePoint>().LogicManager = logicManager;
+            newOutputField.GetComponentInChildren<NodePoint>().NodeLogic = this;
             newOutputField.GetComponentInChildren<NodePoint>().nodeData = node;
             newOutputField.GetComponentInChildren<NodePoint>().fieldIndex = i;
             FindChildWithTag(newOutputField.transform, "NodeFieldName").GetComponent<TextMeshProUGUI>().text = node.nodeData.outputfields[i].name;
@@ -130,6 +143,79 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
         FindChildWithTag(transform, "NodeName").GetComponent<TextMeshProUGUI>().text = node.nodeData.name + " " + nodeIndex;
     }
+
+    private void DropdownSetup(Nodes nodeType, TMP_Dropdown dropdown)
+    {
+        if (nodeType == Nodes.ItemRefInputNode)
+        {
+            dropdown.ClearOptions();
+            List<TMP_Dropdown.OptionData> optionsData = new();
+
+            TMP_Dropdown.OptionData option_1 = new();
+            option_1.text = "Text";
+            optionsData.Add(option_1);
+
+            TMP_Dropdown.OptionData option_2 = new();
+            option_2.text = "Number";
+            optionsData.Add(option_2);
+
+            TMP_Dropdown.OptionData option_3 = new();
+            option_3.text = "Toggle";
+            optionsData.Add(option_3);
+
+            dropdown.AddOptions(optionsData);
+        }
+
+        if (nodeType == Nodes.ItemRefActorNode)
+        {
+            dropdown.ClearOptions();
+            List<TMP_Dropdown.OptionData> optionsData = new();
+
+            TMP_Dropdown.OptionData option_1 = new();
+            option_1.text = "Animation";
+            optionsData.Add(option_1);
+
+            TMP_Dropdown.OptionData option_2 = new();
+            option_2.text = "Sound";
+            optionsData.Add(option_2);
+
+            dropdown.AddOptions(optionsData);
+        }
+
+        if (nodeType == Nodes.ComparisonOpNode)
+        {
+            dropdown.ClearOptions();
+            List<TMP_Dropdown.OptionData> optionsData = new();
+
+            TMP_Dropdown.OptionData option_1 = new();
+            option_1.text = "LessThan";
+            optionsData.Add(option_1);
+
+            TMP_Dropdown.OptionData option_2 = new();
+            option_2.text = "LessThanOrEqual";
+            optionsData.Add(option_2);
+
+            TMP_Dropdown.OptionData option_3 = new();
+            option_3.text = "GreaterThan";
+            optionsData.Add(option_3);
+
+            TMP_Dropdown.OptionData option_4 = new();
+            option_4.text = "GreaterThanOrEqual";
+            optionsData.Add(option_4);
+
+            TMP_Dropdown.OptionData option_5 = new();
+            option_5.text = "Equal";
+            optionsData.Add(option_5);
+
+            TMP_Dropdown.OptionData option_6 = new();
+            option_6.text = " NotEqual";
+            optionsData.Add(option_6);
+
+            dropdown.AddOptions(optionsData);
+        }
+
+    }
+
 
     public GameObject FindChildWithTag(Transform parent, string tag)
     {
@@ -158,12 +244,7 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         return foundGameObject;
     }
 
-    private void MoveAllNodeConnects(bool set)
-    {
-
-    }
-
-    public void ValueChange(int fieldIndex, NodeFieldFlag fieldFlag, FieldInput inputType)
+    public void ValueChange(int fieldIndex, NodeFieldFlag fieldFlag, FieldInput inputType, Nodes nodeType)
     {
         NodeValue value = new();
         GameObject field;
@@ -195,6 +276,11 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
                 //Debug.Log("The Value in Storage: " + value.ToString());
                 break;
             case FieldInput.Dropdown:
+                field = FindChildWithTag(inputFields[fieldIndex].transform, "FieldTypeDropdown");
+                double dropdownIndex = field.GetComponent<TMP_Dropdown>().value;
+                //Debug.Log("Selected: " + field.GetComponent<TMP_Dropdown>().value);
+                value = DropdownValueSetup(nodeType, value, (int)dropdownIndex);
+                Debug.Log("Selected: " + value.comOp);
                 break;
             case FieldInput.Toggle:
                 field = FindChildWithTag(inputFields[fieldIndex].transform, "FieldTypeToggle");
@@ -206,25 +292,42 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         OnNodeValueChange?.Invoke(nodeIndex, fieldFlag, value);
     }
 
+    private NodeValue DropdownValueSetup(Nodes nodeType, NodeValue value, int dropdownIndex)
+    {
+        if (nodeType == Nodes.ItemRefInputNode)
+        {
+        }
+
+        if (nodeType == Nodes.ItemRefActorNode)
+        {
+
+        }
+
+        if (nodeType == Nodes.ComparisonOpNode)
+        {
+            value.comOp = (ComparisonOperators)dropdownIndex;
+            return value;
+        }
+
+        return value;
+    }
+
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        //Debug.Log("is Selected: " + isSelected);
-        if (!isSelected)
-        {
-            //Debug.Log("Mouse in Node");
-            selectedOutline.enabled = true;
-        }
-        OnMouseOver?.Invoke(nodeIndex);
-        logicManager.AssignNodeControlInputs(true);
+        Debug.Log("Node Index: " + logicManager.selectedNodeIndex);
+        logicManager.selectedNodeIndex = nodeIndex;
         logicManager.inNodeVisual = true;
         logicManager.CheckInVoid();
+        HighlightNode(true);
+        Debug.Log("Node Index: " + logicManager.selectedNodeIndex);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (isSelected)
+        if (enableOnDrag)
         {
+            //Debug.Log("on drag");
             Vector2 localDelta;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 parentRectTransform,
@@ -241,39 +344,27 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
                 out localPrev
             );
 
-
-            //rectTransform.anchoredPosition += (eventData.delta / canvas.scaleFactor) / parentRectTransform.localScale;
-            //nodeConnects.toggleLineUpdate = true;
-
             rectTransform.anchoredPosition += (localDelta - localPrev);
 
-            if (toggleMoveConnect)
-            {
-                MoveAllNodeConnects(true);
-                toggleMoveConnect = false;
-            }
         }
+
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (!isSelected)
+        if (!logicManager.isNodeManuplationReady)
         {
-            selectedOutline.enabled = false;
+            logicManager.selectedNodeIndex = -1;
         }
-        //Debug.Log("Mouse out Node");
-
-        if (!toggleMoveConnect)
-        {
-            MoveAllNodeConnects(false);
-            toggleMoveConnect = true;
-        }
-
-        logicManager.AssignNodeControlInputs(false);
         logicManager.inNodeVisual = false;
         logicManager.CheckInVoid();
+        HighlightNode(false);
+        Debug.Log("Node Index: " + logicManager.selectedNodeIndex);
+    }
 
-        //nodeConnects.toggleLineUpdate = false;
+    private void HighlightNode(bool set)
+    {
+        selectedOutline.enabled = set;
     }
 
     public void SelectThisNode()
@@ -292,6 +383,28 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 }
 
 /*
+ * 
+ * 
+        //rectTransform.anchoredPosition += (eventData.delta / canvas.scaleFactor) / parentRectTransform.localScale;
+        //nodeConnects.toggleLineUpdate = true;
+
+ * 
+ *         if (!isSelected)
+        {
+            selectedOutline.enabled = false;
+        }
+        //Debug.Log("Mouse out Node");
+
+ * 
+ * 
+ *         //Debug.Log("is Selected: " + isSelected);
+        if (!isSelected)
+        {
+            //Debug.Log("Mouse in Node");
+            selectedOutline.enabled = true;
+        }
+ * 
+ * 
              newoutputField.GetComponentInChildren<Button>().onClick.AddListener(() =>
             {
                 HandleNodeConnection(index, NodeFieldFlag.OutputRef);

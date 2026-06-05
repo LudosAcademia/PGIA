@@ -15,3 +15,17 @@ logic might be reversed in the backend
 #ROTATION DOESNT WORK!!!!
 
 #apply for jobs
+
+
+
+TO DO:
+1)Finish basic node programming -Branching -Looping
+2)Connect Input, Output, Actor in node programming 
+3)Add Student Inputs and complete game structure
+4)Add Animations and test the protoype
+5)Add Prototype to Website
+
+
+
+
+

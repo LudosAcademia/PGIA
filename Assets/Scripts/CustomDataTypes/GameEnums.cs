@@ -45,7 +45,14 @@ namespace GameEnums
         IntValueNode = 6,
         StringValueNode = 7,
         BooleanValueNode = 8,
-        ExecuteNode = 9,
+        StatementNode = 9,
+        ConditionNode = 10,
+        ComparisonOpNode = 11,
+        LogicalOpNode = 12,
+        ItemRefInputNode = 13,
+        ItemRefActorNode = 14,
+        ItemRefOutputNode = 15,
+        ExecuteNode = 100,
     }
 
 
@@ -97,9 +104,40 @@ namespace GameEnums
 
     public enum ItemType
     {
+        None = -1,
         Actor = 0,
         Input = 1,
         Output = 2,
     }
 
+    public enum ComparisonOperators
+    {
+        LessThan = 0, //<
+        LessThanOrEqual = 1,//<=
+        GreaterThan = 2, //>
+        GreaterThanOrEqual = 3,//>=
+        Equal = 4, //==
+        NotEqual = 5, //!=
+    }
+
+    public enum LogicalOperators
+    {
+        And = 6,
+        Or = 7,
+    }
+
+
 }
+/*
+ <
+<=
+>
+>=
+==
+!=
+
+
+
+ 
+ 
+ */

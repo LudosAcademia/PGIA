@@ -42,7 +42,7 @@ public class GUI : MonoBehaviour
         }
         else
         {
-            msg = $"Currently There are {currentPlaygrounds.Count} under this account, Select to view or edit them";
+            msg = $"Currently There are {currentPlaygrounds.Count} under this account, LogicSelect to view or edit them";
             UpdatePlaygroundView();
 
         }

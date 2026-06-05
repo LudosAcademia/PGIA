@@ -16,6 +16,7 @@ public class GridManager : MonoBehaviour
     private string currentSelectedTool = "";
     private int currentSelectedToolId = 0;
 
+    private Guid currentInstanceId;
 
     private string currentGridLayer;
     public static event Action OnBuildingSection;
@@ -24,7 +25,7 @@ public class GridManager : MonoBehaviour
     public static event Action<string[]> OnToolChange;
     public static event Action<List<string>> OnLayerChange;
     public static event Action<ObjectsDatabase> OnItemsChange;
-    public static event Action<bool, string> OnItemSelected;
+    public static event Action<bool, string, bool> OnItemSelected;
     public static event Action<bool, string> OnMoveObjectStart;
     public static event Action OnGridConstFinished;
 
@@ -284,7 +285,7 @@ public class GridManager : MonoBehaviour
     {
         ClearBuildTools();
         buildingState = null;
-        selectionState = new SelectState(previewSystem, playgroundGrid, objectManipulator);
+        selectionState = new SelectState(previewSystem, GetComponent<GridManager>(), objectManipulator);
         inputManager.OnClicked += SelectObject;
         OnSelectionSection?.Invoke();
     }
@@ -453,9 +454,9 @@ public class GridManager : MonoBehaviour
             //Debug.Log("Current Layer: " + currentGridLayer);
             if (playgroundGrid.grid[currentGridLayer].visuals[GetGridPos().x, GetGridPos().z] != null)
             {
+                currentObjectId = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].containId;
                 GameObject currentGameobject = playgroundGrid.grid[currentGridLayer].visuals[GetGridPos().x, GetGridPos().z].gameObject;
                 selectionState.OnAction(GetGridPos(), currentGridLayer, currentGameobject);
-
 
                 int id = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].containId;
                 int selectedObjectIndex = objectsDatabase.objectData.FindIndex(data => data.ID == id);
@@ -463,10 +464,11 @@ public class GridManager : MonoBehaviour
                 if (objectsDatabase.objectData[selectedObjectIndex].Interaction != InteractType.None)
                 {
                     Guid instanceId = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].instanceId;
+                    currentInstanceId = instanceId;
                     string name = playgroundGrid.logicReadyItems[instanceId].itemName;
                     string info = "Selected Logic Tile: " + GetGridPos() +
                         " \nContains: " + name;
-                    OnItemSelected?.Invoke(true, info);
+                    OnItemSelected?.Invoke(true, info, true);
                 }
                 else
                 {
@@ -475,14 +477,14 @@ public class GridManager : MonoBehaviour
                     string info = "Selected Tile: " + GetGridPos() +
                         " \nContains: " + name +
                         " \nID: " + id;
-                    OnItemSelected?.Invoke(true, info);
+                    OnItemSelected?.Invoke(true, info, false);
                 }
 
             }
             else
             {
                 //Debug.Log("Nothing to select!");
-                OnItemSelected?.Invoke(false, "");
+                OnItemSelected?.Invoke(false, "", false);
                 selectionState.EndState();
             }
         }
@@ -492,12 +494,11 @@ public class GridManager : MonoBehaviour
     {
         if (set)
         {
-            Guid instanceId = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].instanceId;
-            string name = playgroundGrid.logicReadyItems[instanceId].itemName;
+            //Debug.Log("GetGridPos().x, GetGridPos().z " + GetGridPos().x + " " + GetGridPos().z);
+            string name = playgroundGrid.logicReadyItems[currentInstanceId].itemName;
             string info = "Selected Logic Tile: " + GetGridPos() +
                 " \nContains: " + name;
-            OnItemSelected?.Invoke(true, info);
-            //FIX THE VISUAL BUG ON TILE SELECTION: ITEMS NAME DOESNT CHANGE ON DIFF SELECT
+            OnItemSelected?.Invoke(true, info, true);
         }
     }
 

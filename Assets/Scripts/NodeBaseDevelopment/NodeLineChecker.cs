@@ -15,6 +15,7 @@ public class NodeLineChecker : MonoBehaviour
 
         for (int i = 0; i < logicManager.Connections.Count; i++)
         {
+            if (logicManager.Connections[i] == null) { break; }
             nodeCons[i] = new MousePointNodeConnectLine();
             nodeCons[i].line = logicManager.Connections[i];
             Vector2 startPoint = logicManager.Connections[i].nodeConnectVisual.GetComponent<GraphCurve>().startPointA;
@@ -121,9 +122,10 @@ public class NodeLineChecker : MonoBehaviour
 
         for (int i = 0; i < nodeCons.Length; i++)
         {
+            if (nodeCons[i] == null) { break; }
             if (nodeCons[i].mouseOnLine)
             {
-                nodeCons[i].line.nodeConnectVisual.GetComponent<GraphCurve>().UpdateLineColor(Color.yellow);                
+                nodeCons[i].line.nodeConnectVisual.GetComponent<GraphCurve>().UpdateLineColor(Color.yellow);
                 return i;
             }
             else
@@ -171,12 +173,7 @@ public class NodeLineChecker : MonoBehaviour
 
     private void Update()
     {
-        if (Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            if (MouseOverLine() == null) { return; }
-            OldSelectLine(MouseOverLine());
 
-        }
     }
 
 
@@ -190,7 +187,12 @@ public class MousePointNodeConnectLine
 
 
 /*
-   
+           if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (MouseOverLine() == null) { return; }
+            OldSelectLine(MouseOverLine());
+
+        }
 
     private Vector2 GetLocalPointInRect(Vector2 worldPoint, RectTransform Rect)
     {

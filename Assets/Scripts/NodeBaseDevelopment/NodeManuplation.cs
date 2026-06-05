@@ -4,10 +4,12 @@ using UnityEngine.EventSystems;
 public class NodeManuplation : MonoBehaviour, IPointerExitHandler
 {
     [HideInInspector] public NodeData node;
+    [SerializeField] private LogicManager logicManager;
 
     public void OnPointerExit(PointerEventData eventData)
     {
         gameObject.SetActive(false);
+        logicManager.IsNodeManuplationReady = false;
     }
 
     public void OpenNodeManuplation(Vector2 mousePos)

@@ -95,15 +95,15 @@ public class WorldItemRef : MonoBehaviour, IDragHandler, IPointerEnterHandler, I
 
     private void AssignWorldParent()
     {
-        Debug.Log("Is item null: " + itemRef.itemName);
-        Debug.Log("AssignWorld Parent");
+        //Debug.Log("Is item null: " + itemRef.itemName);
+        //Debug.Log("AssignWorld Parent");
         transform.SetParent(worldParent, true);
         thisCanvasObject.alpha = 0.5f;
     }
 
     private void AssignLocalParent()
     {
-        Debug.Log("AssignLocal Parent");
+        //Debug.Log("AssignLocal Parent");
 
         if (AssignmentCheck(localParent.gameObject))
         {

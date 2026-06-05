@@ -65,13 +65,16 @@ public class EventManager : MonoBehaviour
         EventData eventData = new EventData();
 
         eventData.actorObjectRef = actorRef.GetChild(0).GetComponent<WorldItemRef>().itemRef;
+        actorRef.GetChild(0).GetComponent<WorldItemRef>().itemRef.avalible = false;
         eventData.outputObjectRef = outputRef.GetChild(0).GetComponent<WorldItemRef>().itemRef;
+        outputRef.GetChild(0).GetComponent<WorldItemRef>().itemRef.avalible = false;
         eventData.name = eventName.text;
 
         int len = inputRefs.childCount;
         for (int i = 0; i < len; i++)
         {
             eventData.inputObjectRefs.Add(inputRefs.GetChild(i).GetComponent<WorldItemRef>().itemRef);
+            inputRefs.GetChild(i).GetComponent<WorldItemRef>().itemRef.avalible = false;
         }
 
         eventData.id = new Guid();
@@ -83,8 +86,15 @@ public class EventManager : MonoBehaviour
         }
 
         GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].event_data.Add(eventData);
-        OnEventCreated?.Invoke();
+        EventCreated();
     }
+
+    public void EventCreated()
+    {
+        OnEventCreated?.Invoke();
+        ResetEventUI();
+    }
+
 
     private bool IsRefsEmpty()
     {

@@ -3,6 +3,7 @@ using GameNodes;
 using System;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 
 public class LogicManager : MonoBehaviour
@@ -18,18 +19,27 @@ public class LogicManager : MonoBehaviour
     [SerializeField] private GameObject nodePreviewText;
     [SerializeField] private NodeSelection nodeSelection;
     [SerializeField] private NodeManuplation nodeManuplation;
-
     [SerializeField] private Color wireColor;
     [Space(5)]
+
+
+    [Header("Refs")]
+    [SerializeField] private GameObject logicItemRefPrefab;
+    [SerializeField] private GameObject actorItemRef;
+    [SerializeField] private GameObject outputItemRef;
+    [SerializeField] private GameObject inputItemRefs;
+    [Space(5)]
+
 
     [Header("Prefabs")]
     [SerializeField] private GameObject nodePrefab;
     [SerializeField] private GameObject backgroundPrefab;
     [SerializeField] private GameObject nodeConnectPrefab;
 
-
-
     [HideInInspector] public bool newConnection = false;
+    [HideInInspector] public NodeLogic currNodeLogic;
+    private NodeLogic prevNodeLogic;
+
     private EventData currentEvent;
     private List<GameObject> backgrounds = new();
 
@@ -39,8 +49,8 @@ public class LogicManager : MonoBehaviour
     private Stack<int> emptyNodeIndexes = new();
     private Stack<int> emptyNodeConnectIndexes = new();
 
-    private int selectedNodeIndex = -1;
-    private int selectedLineIndex = -1;
+    [HideInInspector] public int selectedNodeIndex = -1;
+    [HideInInspector] public int selectedLineIndex = -1;
 
     private NodeData selectedNode;
     private NodeConnectData selectedConnection;
@@ -61,6 +71,7 @@ public class LogicManager : MonoBehaviour
     private Vector2 lastMousePos = Vector2.zero;
     private Vector2 lastMousePosForNode = Vector2.zero;
 
+    public static event Action OnNodeSelect;
     public static event Action OnDeselectNodes;
     public static event Action<bool, RectTransform> OnNewNodeConnectEnd;
     public static event Action<string> OnSelected;
@@ -71,7 +82,6 @@ public class LogicManager : MonoBehaviour
     private Vector2 currentScale = Vector2.one;
 
     private int startConnectNodeIndex;
-
     private int endConnectNodeIndex;
 
     [HideInInspector] public NodeData startNodeCon;
@@ -88,11 +98,13 @@ public class LogicManager : MonoBehaviour
     private bool inVoid = false;
     private bool isFieldAvalible = false;
 
+    [HideInInspector] public bool isNodeManuplationReady = false;    
     [HideInInspector] public bool inNodeVisual = false;
     [HideInInspector] public bool inNodePointVisual = false;
 
     public List<NodeConnectData> Connections { get => connections; set => connections = value; }
     public EventData CurrentEvent { get => currentEvent; set => currentEvent = value; }
+    public bool IsNodeManuplationReady { get => isNodeManuplationReady; set => isNodeManuplationReady = value; }
 
     private void Awake()
     {
@@ -107,6 +119,7 @@ public class LogicManager : MonoBehaviour
         PlaygroundManager.OnStartLogicManagement += OnLogicManagerOpen;
         NodeSelection.OnNodeSelection += SetupNode;
         NodeLogic.OnNodeValueChange += AssignNodeValue;
+        LogicItemRef.OnItemRefCreated += SetupRefNode;
     }
 
     private void OnDisable()
@@ -114,30 +127,95 @@ public class LogicManager : MonoBehaviour
         PlaygroundManager.OnStartLogicManagement -= OnLogicManagerOpen;
         NodeSelection.OnNodeSelection -= SetupNode;
         NodeLogic.OnNodeValueChange -= AssignNodeValue;
+        LogicItemRef.OnItemRefCreated -= SetupRefNode;
 
     }
 
-    private void OpenNodeMenu()
+    private void Update()
     {
-        if (selectedNode == null)
+        if (toggleGraphMovement)
         {
-            nodeManuplation.gameObject.SetActive(false);
-            nodeSelection.gameObject.SetActive(true);
-            nodeSelection.OpenNodeSelection(inputManager.GetMousePosition());
+            MoveNodeGraph();
         }
-        else
+
+        if (toggleGraphZoom)
         {
+            ZoomNodes();
+        }
+        /*
+        if (toggleNodeMovement)
+        {
+            if (selectedNode == null) { return; }
+            //MoveSelectedNode(selectedNode);
+        }
+        */
+    }
+
+
+    private void SetNodeManuplationMenu()
+    {
+        //Debug.Log("in SetNodeManuplationMenu");
+        if (isNodeManuplationReady)
+        {
+            AssignGraphControlInputs(false);
+            AssignNodeControlInputs(false);
             nodeManuplation.gameObject.SetActive(true);
             nodeSelection.gameObject.SetActive(false);
             nodeManuplation.OpenNodeManuplation(inputManager.GetMousePosition());
+            //Debug.Log("nodelineConnnection: " + selectedLineIndex);
         }
-
+        else
+        {
+            AssignGraphControlInputs(true);
+            AssignNodeControlInputs(true);
+            nodeManuplation.gameObject.SetActive(false);
+            nodeSelection.gameObject.SetActive(true);
+            nodeSelection.OpenNodeSelection(inputManager.GetMousePosition());
+            //Debug.Log("Node Select Panel");
+        }
     }
 
     private void SaveGraphData() { }
 
     private void LoadGraphData()
     {
+        if (!currentEvent.debug)
+        {
+            GameObject actorRef = Instantiate(logicItemRefPrefab);
+            actorRef.transform.SetParent(actorItemRef.transform);
+            actorRef.GetComponent<LogicItemRef>().itemRef = currentEvent.actorObjectRef;
+            actorRef.GetComponent<LogicItemRef>().inputManager = inputManager;
+            actorRef.GetComponent<LogicItemRef>().baseParent = actorItemRef.transform;
+            actorRef.GetComponent<LogicItemRef>().worldParent = nodeParent.transform;
+            actorRef.GetComponent<LogicItemRef>().parentRectTransform = nodeParent.GetComponent<RectTransform>();
+            actorRef.GetComponentInChildren<TextMeshProUGUI>().text = currentEvent.actorObjectRef.itemName;
+            actorRef.transform.localScale = Vector3.one;
+
+            GameObject outputRef = Instantiate(logicItemRefPrefab);
+            outputRef.transform.SetParent(outputItemRef.transform);
+            outputRef.GetComponent<LogicItemRef>().itemRef = currentEvent.outputObjectRef;
+            outputRef.GetComponent<LogicItemRef>().inputManager = inputManager;
+            outputRef.GetComponent<LogicItemRef>().baseParent = outputItemRef.transform;
+            outputRef.GetComponent<LogicItemRef>().worldParent = nodeParent.transform;
+            outputRef.GetComponent<LogicItemRef>().parentRectTransform = nodeParent.GetComponent<RectTransform>();
+            outputRef.GetComponentInChildren<TextMeshProUGUI>().text = currentEvent.outputObjectRef.itemName;
+            outputRef.transform.localScale = Vector3.one;
+
+            for (int i = 0; i < currentEvent.inputObjectRefs.Count; i++)
+            {
+                GameObject inputRef = Instantiate(logicItemRefPrefab);
+                inputRef.transform.SetParent(inputItemRefs.transform);
+                inputRef.GetComponent<LogicItemRef>().itemRef = currentEvent.inputObjectRefs[i];
+                inputRef.GetComponent<LogicItemRef>().inputManager = inputManager;
+                inputRef.GetComponent<LogicItemRef>().baseParent = inputItemRefs.transform;
+                inputRef.GetComponent<LogicItemRef>().worldParent = nodeParent.transform;
+                inputRef.GetComponent<LogicItemRef>().parentRectTransform = nodeParent.GetComponent<RectTransform>();
+                inputRef.GetComponentInChildren<TextMeshProUGUI>().text = currentEvent.inputObjectRefs[i].itemName;
+                inputRef.transform.localScale = Vector3.one;
+            }
+
+        }
+
         Node executeNode = new ExecuteNode("Execute");
         CreateNode(executeNode);
     }
@@ -145,8 +223,7 @@ public class LogicManager : MonoBehaviour
     private void SetupGraph()
     {
         LoadGraphData();
-        inputManager.OnRightClick += OpenNodeMenu;
-
+        InitialControlAssignments(true);
     }
 
     private void DestroyGraph()
@@ -160,8 +237,7 @@ public class LogicManager : MonoBehaviour
         }
 
         nodes = null;
-        inputManager.OnRightClick -= OpenNodeMenu;
-
+        InitialControlAssignments(false);
     }
 
     public void ExecuteGraph()
@@ -213,16 +289,12 @@ public class LogicManager : MonoBehaviour
         {
             inputManager.OnWheelClickStarted += StartMoveGraph;
             inputManager.OnWheelClickEnded += EndMoveGraph;
-            NodeLogic.OnMouseOver += SelectNode;
-            inputManager.OnClicked += SelectNodeConnect;
             toggleGraphZoom = true;
         }
         else
         {
             inputManager.OnWheelClickStarted -= StartMoveGraph;
             inputManager.OnWheelClickEnded -= EndMoveGraph;
-            NodeLogic.OnMouseOver -= SelectNode;
-            inputManager.OnClicked += SelectNodeConnect;
             toggleGraphZoom = false;
         }
     }
@@ -231,15 +303,11 @@ public class LogicManager : MonoBehaviour
     {
         if (set)
         {
-            NodeLogic.OnMouseOver += SelectNode;
-            inputManager.OnClicked += ListenForClickInNode;
-            inputManager.OnClicked -= ListenForClickOutNode;
+            inputManager.OnClicked += LogicSelect;
         }
         else
         {
-            NodeLogic.OnMouseOver -= SelectNode;
-            inputManager.OnClicked -= ListenForClickInNode;
-            inputManager.OnClicked += ListenForClickOutNode;
+            inputManager.OnClicked -= LogicSelect;
         }
     }
 
@@ -259,47 +327,29 @@ public class LogicManager : MonoBehaviour
         }
     }
 
+    private void InitialControlAssignments(bool set)
+    {
+        if (set)
+        {
+            inputManager.OnRightClick += SetNodeManuplationMenu;
+            AssignNodeControlInputs(false);
+        }
+        else
+        {
+            inputManager.OnRightClick -= SetNodeManuplationMenu;
+            AssignNodeControlInputs(true);
+        }
+    }
+
     public void AssignNodeValue(int nodeIndex, NodeFieldFlag fieldFlag, NodeValue value)
     {
         Node node = nodes[nodeIndex].nodeData;
         node.baseValue = value;
         node.executeReady = true;
-        Debug.Log("Is Node Execute Ready: " + node.executeReady);
+        //Debug.Log("Is Node Execute Ready: " + node.executeReady);
         //Debug.Log("AssignNodeValue finished execution");
     }
 
-    private void ListenForClickInNode()
-    {
-        if (selectedNode == null) { return; }
-        selectedNode.nodeVisual.GetComponent<NodeLogic>().SelectThisNode();
-        inputManager.OnClickStarted += StartMoveNode;
-        inputManager.OnClickEnded += EndMoveNode;
-        selectedNodesText = "Selected Nodes: " + "\n-->" + selectedNode.nodeData.name;
-        OnSelected?.Invoke(selectedNodesText);
-    }
-
-    //If the mouse out of the node and user click unassign all node selection
-    private void ListenForClickOutNode()
-    {
-        if (selectedNode == null) { return; }
-        inputManager.OnClickStarted -= StartMoveNode;
-        inputManager.OnClickEnded -= EndMoveNode;
-        OnDeselectNodes?.Invoke();
-        //selectedNode.GetComponent<NodeLogic>().DeSelectThisNode();
-        selectedNode = null;
-        DeSelectNodes();
-    }
-
-    private void StartMoveNode()
-    {
-        lastMousePosForNode = Vector2.zero;
-        toggleNodeMovement = true;
-    }
-
-    private void EndMoveNode()
-    {
-        toggleNodeMovement = false;
-    }
 
     private void StartMoveGraph()
     {
@@ -311,26 +361,6 @@ public class LogicManager : MonoBehaviour
     {
         //lastMousePos = Vector2.zero;
         toggleGraphMovement = false;
-    }
-
-    private void Update()
-    {
-        if (toggleGraphMovement)
-        {
-            MoveNodeGraph();
-        }
-
-        if (toggleGraphZoom)
-        {
-            ZoomNodes();
-        }
-
-        if (toggleNodeMovement)
-        {
-            if (selectedNode == null) { return; }
-            //MoveSelectedNode(selectedNode);
-        }
-
     }
 
     private void ZoomNodes()
@@ -349,6 +379,7 @@ public class LogicManager : MonoBehaviour
                 //Debug.Log("currentScale: " + currentScale);
                 currentScale += new Vector2(baseScrollSpeed, baseScrollSpeed);
                 nodeParent.transform.localScale = currentScale;
+                nodeConnectionParent.transform.localScale = currentScale;
             }
         }
 
@@ -362,62 +393,10 @@ public class LogicManager : MonoBehaviour
                 //Debug.Log("currentScale: " + currentScale);
                 currentScale -= new Vector2(baseScrollSpeed, baseScrollSpeed);
                 nodeParent.transform.localScale = currentScale;
+                nodeConnectionParent.transform.localScale = currentScale;
             }
         }
 
-    }
-
-    private void SelectNode(int nodeIndex)
-    {
-        selectedNodeIndex = nodeIndex;
-        if (selectedNodeIndex != -1)
-        {
-            Debug.Log("nodeIndex: " + nodeIndex);
-            selectedNode = nodes[nodeIndex];
-            selectNodeReady = true;
-        }
-
-        for (int i = 0; i < nodes.Count; i++)
-        {
-            if (i != selectedNodeIndex)
-            {
-                nodes[i].nodeVisual.GetComponent<NodeLogic>().DeSelectThisNode();
-            }
-        }
-    }
-
-    private void DeSelectNodes()
-    {
-        selectedNodesText = "Selected Nodes: ";
-        OnSelected?.Invoke(selectedNodesText);
-
-    }
-
-    private void SelectNodeConnect()
-    {
-        selectedLineIndex = nodeLineChecker.SelectLine();
-        if (selectedLineIndex != -1)
-        {
-            selectedConnection = connections[selectedLineIndex];
-            connections[selectedLineIndex].nodeConnectVisual.GetComponent<NodeConnect>().UpdateLineColor(Color.yellow);
-            selectConnectionReady = true;
-            selectedConnectionsText += "\nInputNode: " + connections[selectedLineIndex].inputNode.nodeData.name;
-            selectedConnectionsText += "\nOutputNode: " + connections[selectedLineIndex].outputNode.nodeData.name;
-            OnSelected?.Invoke(selectedConnectionsText);
-            AssignNodeControlInputs(false);
-        }
-        else
-        {
-            AssignNodeControlInputs(true);
-            DeSelectNodeConnect();
-        }
-    }
-
-    private void DeSelectNodeConnect()
-    {
-        selectedConnectionsText = "Selected Connections: ";
-        selectConnectionReady = false;
-        OnSelected?.Invoke(selectedConnectionsText);
     }
 
     private void MoveNodeGraph()
@@ -470,6 +449,29 @@ public class LogicManager : MonoBehaviour
         node.name += " " + id;
     }
 
+    private void SetupRefNode(AvaItemPreBuild itemRef, Vector2 mousePos)
+    {
+        //Debug.Log("Create Ref" + itemRef.itemName + " On " + mousePos);
+
+        InteractType type = itemRef.type;
+        string nodeName = itemRef.itemName;
+        if (type == InteractType.Input)
+        {
+            InputRefNode itemRefNode = new InputRefNode(nodeName, itemRef);
+            CreateNode(itemRefNode);
+        }
+        if (type == InteractType.Output)
+        {
+            OutputRefNode itemRefNode = new OutputRefNode(nodeName, itemRef);
+            CreateNode(itemRefNode);
+        }
+        if (type == InteractType.Actor)
+        {
+            ActorRefNode itemRefNode = new ActorRefNode(nodeName, itemRef);
+            CreateNode(itemRefNode);
+        }
+    }
+
     private void SetupNode(Nodes nodeType)
     {
         switch (nodeType)
@@ -506,11 +508,80 @@ public class LogicManager : MonoBehaviour
                 ValueNode newBooleanValueNode = new ValueNode("Toggle", NodeValueType.String);
                 CreateNode(newBooleanValueNode);
                 break;
+            case Nodes.StatementNode:
+                StatementNode newStatementNodeNode = new StatementNode("Statement", NodeValueType.Double);
+                CreateNode(newStatementNodeNode);
+                break;
+            case Nodes.ConditionNode:
+                ConditionNode newConditionNodeNode = new ConditionNode("Condition");
+                CreateNode(newConditionNodeNode);
+                break;
+            case Nodes.ComparisonOpNode:
+                ComparisonOpNode newComparisonOpNodeNode = new ComparisonOpNode("ComparisonOperator");
+                CreateNode(newComparisonOpNodeNode);
+                break;
+            case Nodes.LogicalOpNode:
+                LogicalOpNode newLogicalOpNodeNodeNode = new LogicalOpNode("LogicalOperator");
+                CreateNode(newLogicalOpNodeNodeNode);
+                break;
         }
     }
 
+
+    #region Selection
+
+    private void LogicSelect()
+    {
+        Debug.Log("In logic Select");
+
+        if (inNodeVisual)
+        {
+            if (selectedNodeIndex == -1)
+            {
+                selectNodeReady = false;
+                return;
+            }
+            selectedNodesText = "Selected Node: " + nodes[selectedNodeIndex].nodeData.name;
+            Debug.Log("Selected Node");
+            OnSelected?.Invoke(selectedNodesText);
+            isNodeManuplationReady = true;
+            selectNodeReady = true;
+        }
+        else
+        {
+            selectedLineIndex = nodeLineChecker.SelectLine();
+            if (selectedLineIndex == -1)
+            {
+                OnSelected?.Invoke(" ");
+                isNodeManuplationReady = false;
+                selectConnectionReady = false;
+                Debug.Log(" selectConnectionReady " + selectConnectionReady);
+
+            }
+            else
+            {
+
+                Debug.Log("selectedLineIndex " + selectedLineIndex);
+                selectedNodesText = "\nInputNode: " + connections[selectedLineIndex].inputNode.nodeData.name + "\n" +
+                    "\nOutputNode: " + connections[selectedLineIndex].outputNode.nodeData.name;
+                Debug.Log("Selected Connection");
+                OnSelected?.Invoke(selectedNodesText);
+                isNodeManuplationReady = true;
+                selectConnectionReady = true;
+                Debug.Log(" selectConnectionReady " + selectConnectionReady);
+
+            }
+        }
+
+    }
+
+    #endregion
+
     public void DeleteNode()
     {
+        Debug.Log("In Delete Node Func selectedNodeIndex: " + selectedNodeIndex);
+        if (selectedNodeIndex == -1) { return; }
+        if (nodes[selectedNodeIndex] == null) { return; }
         if (nodes[selectedNodeIndex].nodeData != null)
         {
             foreach (var outputfields in nodes[selectedNodeIndex].nodeData.outputfields)
@@ -544,29 +615,36 @@ public class LogicManager : MonoBehaviour
         emptyNodeConnectIndexes.Push(index);
     }
 
-
     public void DeleteNodeConnection()
     {
         if (selectedLineIndex == -1) { return; }
+        Debug.Log("Trying to delete the node connection");
 
         if (connections[selectedLineIndex] != null)
         {
+            Debug.Log("Destroying node connection");
             Destroy(connections[selectedLineIndex].nodeConnectVisual);
             connections[selectedLineIndex] = null;
             selectConnectionReady = false;
             emptyNodeConnectIndexes.Push(selectedLineIndex);
+            selectedLineIndex = -1;
         }
 
     }
 
     public void DeleteSelected()
     {
-        if (selectNodeReady)
+        Debug.Log("Try Deleting Connection " + selectConnectionReady);
+        /*
+                 if (selectNodeReady)
         {
             Debug.Log("Try Deleting node");
             DeleteNode();
             selectNodeReady = false;
         }
+         
+         */
+
 
         if (selectConnectionReady)
         {
@@ -576,10 +654,6 @@ public class LogicManager : MonoBehaviour
         }
     }
 
-    private void GetCurrentNodePointVisual(RectTransform rect)
-    {
-
-    }
 
     private void InitilizeNodeConnectVisual()
     {
@@ -606,7 +680,8 @@ public class LogicManager : MonoBehaviour
     {
         InitilizeNodeConnectVisual();
         newConnection = true;
-
+        currNodeLogic.enableOnDrag = false;
+        prevNodeLogic = currNodeLogic;
         //startNewConnection = true;
 
         //startConnectNodeIndex = nodeIndex;
@@ -651,22 +726,13 @@ public class LogicManager : MonoBehaviour
         if (startNodeFieldFlag == NodeFieldFlag.InputRef)
         {
             NodeField endNodeField = endNodeCon.nodeData.outputfields[endConnectFieldIndex];
-            if (endNodeField.nodeRefs.Count == 0)
-            {
-                isFieldAvalible = true;
-                return;
-            }
-
-            if (endNodeField.nodeRefs[0] == null)
-            {
-                isFieldAvalible = true;
-            }
-            else { isFieldAvalible = false; }
+            isFieldAvalible = endNodeField.nodeRefs.Count == 0;
         }
         else
         {
             NodeField startNodeField = startNodeCon.nodeData.outputfields[startConnectFieldIndex];
             NodeField endNodeField = endNodeCon.nodeData.inputfields[endConnectFieldIndex];
+
             if (endNodeField.nodeRefs.Count == 0)
             {
                 isFieldAvalible = true;
@@ -677,6 +743,7 @@ public class LogicManager : MonoBehaviour
             {
                 if (field.guid == startNodeField.nodeRefs[0].guid)
                 {
+
                     isFieldAvalible = false;
                     return;
                 }
@@ -693,18 +760,26 @@ public class LogicManager : MonoBehaviour
         isSameNode = (nodeConRef.guid == nodeEndPointRef.guid);
     }
 
+    private bool CheckForCorrrectType(NodeFieldFlag startFlag, NodeFieldFlag endFlag)
+    {
+        return startFlag == endFlag;
+    }
+
     private bool CheckNodeConnection()
     {
-        if (startNodeCon != null && endNodeCon != null)
+        bool isSameField = CheckForCorrrectType(startNodeFieldFlag, endNodeFieldFlag);
+
+        if (startNodeCon != null && endNodeCon != null && !isSameField)
         {
             CheckForSameNode(startNodeCon.nodeData, endNodeCon.nodeData);
             CheckForFieldAvalible();
         }
 
+        bool isNodeConnectionAlreadyExist = CheckForConnectionExist();
         //Debug.Log("isSameNode: " + isSameNode + " CheckForConnectionExist(): " + CheckForConnectionExist() + " inVoid: " + inVoid + " isFieldAvalible: " + isFieldAvalible);
         //Debug.Log("Node connection possible: " + (!isSameNode && !CheckForConnectionExist() && !inVoid));
 
-        return !isSameNode && !CheckForConnectionExist() && !inVoid && isFieldAvalible;
+        return !isSameNode && !isNodeConnectionAlreadyExist && !inVoid && !isSameField; //&& isFieldAvalible;
     }
 
     public void HandleNodeConnectionEnd()
@@ -712,6 +787,9 @@ public class LogicManager : MonoBehaviour
         //CancelNodeConnect();
         //Debug.Log("Is startPoint Null: " + (startNodeCon == null));
         //Debug.Log("Is endPoint Null: " + (endNodeCon == null));
+        prevNodeLogic.enableOnDrag = true;
+        prevNodeLogic = null;
+        currNodeLogic = null;
 
         if (CheckNodeConnection())
         {
@@ -722,7 +800,6 @@ public class LogicManager : MonoBehaviour
             CancelNodeConnect();
         }
 
-        AssignNodeControlInputs(true);
         AssignNodeConnectInputs(false);
     }
 
@@ -875,6 +952,138 @@ public class NodeConnectData
 
 
 /*
+ * 
+ *     private void ListenForClickInNode()
+    {
+        if (selectedNode == null) { return; }
+        Debug.Log("InNode");
+        selectedNode.nodeVisual.GetComponent<NodeLogic>().SelectThisNode();
+        inputManager.OnClickStarted += StartMoveNode;
+        inputManager.OnClickEnded += EndMoveNode;
+        selectedNodesText = "Selected Nodes: " + "\n-->" + selectedNode.nodeData.name;
+        OnSelected?.Invoke(selectedNodesText);
+    }
+
+    //If the mouse out of the node and user click unassign all node selection
+    private void ListenForClickOutNode()
+    {
+        if (selectedNode == null) { return; }
+        Debug.Log("OutNode");
+        inputManager.OnClickStarted -= StartMoveNode;
+        inputManager.OnClickEnded -= EndMoveNode;
+        OnDeselectNodes?.Invoke();
+        //selectedNode.GetComponent<NodeLogic>().DeSelectThisNode();
+        selectedNode = null;
+        //DeSelectNodes();
+    }
+
+    private void StartMoveNode()
+    {
+        lastMousePosForNode = Vector2.zero;
+        toggleNodeMovement = true;
+    }
+
+    private void EndMoveNode()
+    {
+        toggleNodeMovement = false;
+    }
+
+ * 
+ * 
+ * 
+ Inside AssignControlInputs
+             NodeLogic.OnMouseOver += SelectNode;
+            NodeLogic.OnMouseOver -= SelectNode;
+ *
+ *
+ Inside AssignGraphControlInputs :
+            NodeLogic.OnMouseOver += SelectNode;
+            inputManager.OnClicked += SelectNodeConnect;
+            NodeLogic.OnMouseOver -= SelectNode;
+            inputManager.OnClicked += SelectNodeConnect;
+ * 
+ *
+ * 
+ * 
+ * 
+ * 
+    private void SelectNode(int nodeIndex)
+    {
+        DeSelectNodeConnect();
+        selectedNodeIndex = nodeIndex;
+        if (selectedNodeIndex != -1)
+        {
+            selectedNode = nodes[nodeIndex];
+            selectNodeReady = true;
+            isNodeManuplationReady = true;
+        }
+
+        //Debug.Log("nodeIndex: " + nodeIndex + " manuplation ready: " + isNodeManuplationReady);
+
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            if (i != selectedNodeIndex)
+            {
+                if (nodes[i] != null)
+                {
+                    nodes[i].nodeVisual.GetComponent<NodeLogic>().DeSelectThisNode();
+                }
+            }
+        }
+
+    }
+
+    private void DeSelectNodes()
+    {
+        selectedNodesText = "Selected Nodes: ";
+        OnSelected?.Invoke(selectedNodesText);
+        Debug.Log("Deselect Nodes");
+    }
+
+    private void SelectNodeConnect()
+    {
+        //DeSelectNodeConnect();
+        Debug.Log("isNodeManuplationReady: " + isNodeManuplationReady);
+
+
+        if (!isNodeManuplationReady)
+        {
+            selectedLineIndex = nodeLineChecker.SelectLine();
+        }
+
+        //Debug.Log("selectedLineIndex: " + selectedLineIndex);
+        if (selectedLineIndex != -1)
+        {
+            selectedConnection = connections[selectedLineIndex];
+            connections[selectedLineIndex].nodeConnectVisual.GetComponent<NodeConnect>().UpdateLineColor(Color.yellow);
+            selectConnectionReady = true;
+            selectedConnectionsText += "\nInputNode: " + connections[selectedLineIndex].inputNode.nodeData.name;
+            selectedConnectionsText += "\nOutputNode: " + connections[selectedLineIndex].outputNode.nodeData.name;
+            OnSelected?.Invoke(selectedConnectionsText);
+            AssignNodeControlInputs(false);
+            isNodeManuplationReady = true;
+        }
+        else
+        {
+            AssignNodeControlInputs(true);
+            DeSelectNodeConnect();
+        }
+
+        Debug.Log("Connection Selected: " + selectConnectionReady);
+    }
+
+    private void DeSelectNodeConnect()
+    {
+        selectedConnectionsText = "Selected Connections: ";
+        selectConnectionReady = false;
+        OnSelected?.Invoke(selectedConnectionsText);
+    }
+
+ * 
+ * 
+ * 
+ * 
+ * 
  *         //Debug.Log("Is node empty: " + node == null);
 
      private void MoveSelectedNode(GameObject node)

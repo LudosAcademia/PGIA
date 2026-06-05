@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
 
 public class ObjectManipulator : MonoBehaviour
@@ -28,9 +29,10 @@ public class ObjectManipulator : MonoBehaviour
                 newItem.index = gridManager.PlaygroundGrid.grid[layer].data[gridPosition.x, gridPosition.z].index;
                 newItem.containId = gridManager.ObjectsDatabase.objectData[selectedObjectIndex].ID;
                 newItem.type = gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Interaction;
-                newItem.itemId = new Guid();
+                newItem.itemId = Guid.NewGuid();
+                gridManager.PlaygroundGrid.grid[layer].data[gridPosition.x, gridPosition.z].instanceId = newItem.itemId;
                 newItem.itemName = gridManager.ObjectsDatabase.objectData[selectedObjectIndex].Name;
-                gridManager.PlaygroundGrid.logicReadyItems[newItem.itemId] = newItem;
+                gridManager.PlaygroundGrid.logicReadyItems.Add(newItem.itemId, newItem);
             }
 
             //int index = gridManager.GridData.GetTileIndex(gridPosition.x, gridPosition.z, layer);

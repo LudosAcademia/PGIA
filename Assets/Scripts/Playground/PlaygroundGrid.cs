@@ -7,6 +7,7 @@ public class PlaygroundGrid : MonoBehaviour
     public Dictionary<string, GridLayer> grid;
     public List<string> gridLayerKeys;
     public Dictionary<Guid, AvaItemPreBuild> logicReadyItems;
+    public List<Guid> instanceIds;
     private int gridSize;
 
     public int GridSize { get => gridSize; set => gridSize = value; }

@@ -12,7 +12,10 @@ public abstract class Node
     public NodeField[] outputfields;
     public bool baseNode = false;
     public bool executeReady = false;
+    public bool specialNode = false;
+    public ItemType itemRef = ItemType.None;
     public NodeValue baseValue;
+    public Nodes nodeType;
 
     public Node() { }
     public Node(string name, int inputFieldNumber, int outputFieldNumber)
@@ -29,12 +32,16 @@ public abstract class Node
     public abstract void ValueAssignment();
 
     public abstract void Operation();
+
+    public abstract void SpecialSetup();
 }
 
 
 public struct NodeValue
 {
     public NodeValueType type;
+    public ComparisonOperators comOp;
+    public LogicalOperators logOp;
     private double number;
     private bool boolean;
     private string text;

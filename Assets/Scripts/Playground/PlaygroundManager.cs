@@ -7,7 +7,7 @@ public class PlaygroundManager : MonoBehaviour
     [SerializeField] private GameObject gridContainer;
     [SerializeField] private GameObject vCam;
     [SerializeField] private InputManager inputManager;
-
+    [SerializeField] private LogicManager logicManager;
     public GridManager GridManager { get => gridManager; set => gridManager = value; }
 
     public static event Action<int, int> OnStartPlaygroundEdit;
@@ -26,6 +26,7 @@ public class PlaygroundManager : MonoBehaviour
     public static event Action OnCloseBlockPanel;
 
     public static event Action OnStartLogicManagement;
+    public static event Action OnCancelLogicManagement;
     public static event Action OnEndLogicManagement;
 
     public static event Action OnItemCreateStart;
@@ -81,8 +82,17 @@ public class PlaygroundManager : MonoBehaviour
 
     public void OnLogicManagementOpen()
     {
+        int playgroundIndex = GameManager.Instance.GameData.currentUser.curr_ply_index;
+        int eventIndex = GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].curr_evt_index;
+        EventData currEvent = GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].event_data[eventIndex];
+        logicManager.CurrentEvent = currEvent;
         OnStartLogicManagement?.Invoke();
         vCam.SetActive(false);
+    }
+
+    public void OnLogicManagementCancel()
+    {
+        OnCancelLogicManagement?.Invoke();
     }
 
     public void OnLogicManagementClose()

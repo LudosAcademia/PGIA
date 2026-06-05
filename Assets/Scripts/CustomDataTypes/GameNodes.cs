@@ -1,5 +1,6 @@
 ﻿using GameEnums;
 using System;
+using System.Data;
 using UnityEngine;
 
 namespace GameNodes
@@ -34,6 +35,12 @@ namespace GameNodes
                 }
             }
         }
+
+        public override void SpecialSetup()
+        {
+            throw new NotImplementedException();
+        }
+
 
         public override string ToString()
         {
@@ -201,19 +208,168 @@ namespace GameNodes
 
     public class StatementNode : BaseNode
     {
-        public StatementNode(string name, NodeValueType valueType) : base(name, 1, 1)
-        {
+        GameEnums.ComparisonOperators comOp;
+        FieldInput fieldTypes;
+        NodeValue valueA;
+        NodeValue valueB;
 
+        public StatementNode(string name, NodeValueType valueType) : base(name, 3, 1)
+        {
+            switch (valueType)
+            {
+                case NodeValueType.String:
+                    InitilizeStatementNode(FieldInput.Text);
+                    break;
+                case NodeValueType.Boolean:
+                    InitilizeStatementNode(FieldInput.Toggle);
+                    break;
+                case NodeValueType.Double:
+                    InitilizeStatementNode(FieldInput.Number);
+                    break;
+            }
+            specialNode = true;
+            nodeType = Nodes.StatementNode;
+        }
+
+        private void InitilizeStatementNode(FieldInput inputType)
+        {
+            inputfields[0] = new()
+            {
+                name = "A",
+                fieldInputType = inputType,
+            };
+            inputfields[0].nodeRefs = new();
+
+            inputfields[1] = new()
+            {
+                name = "Condition",
+                fieldInputType = FieldInput.Dropdown,
+            };
+            inputfields[1].nodeRefs = new();
+
+            inputfields[2] = new()
+            {
+                name = "B",
+                fieldInputType = inputType,
+            };
+            inputfields[2].nodeRefs = new();
+
+
+            outputfields[0] = new()
+            {
+                name = "Connect",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[0].nodeRefs = new();
+
+            fieldTypes = inputType;
         }
 
         public override void Operation()
         {
+            switch (fieldTypes)
+            {
+                case FieldInput.Number:
+                    baseValue.CastBoolean(NumberOperation());
+                    break;
+                case FieldInput.Text:
+                    baseValue.CastBoolean(TextOperation());
+                    break;
+                case FieldInput.Toggle:
+                    baseValue.CastBoolean(BoolOperation());
+                    break;
+            }
 
+            base.Operation();
+        }
+
+
+        private bool NumberOperation()
+        {
+            bool statement = false;
+            double numberA = valueA.AsDouble();
+            double numberB = valueB.AsDouble();
+
+            switch (comOp)
+            {
+                case GameEnums.ComparisonOperators.Equal:
+                    statement = (numberA == numberB);
+                    break;
+                case GameEnums.ComparisonOperators.NotEqual:
+                    statement = (numberA != numberB);
+                    break;
+                case GameEnums.ComparisonOperators.LessThan:
+                    statement = (numberA < numberB);
+                    break;
+                case GameEnums.ComparisonOperators.LessThanOrEqual:
+                    statement = (numberA <= numberB);
+                    break;
+                case GameEnums.ComparisonOperators.GreaterThan:
+                    statement = (numberA > numberB);
+                    break;
+                case GameEnums.ComparisonOperators.GreaterThanOrEqual:
+                    statement = (numberA >= numberB);
+                    break;
+
+            }
+            return statement;
+        }
+
+        private bool TextOperation()
+        {
+            bool statement = false;
+            string textA = inputfields[0].nodeRefs[0].baseValue.AsString();
+            string textB = inputfields[2].nodeRefs[0].baseValue.AsString();
+
+            switch (comOp)
+            {
+                case GameEnums.ComparisonOperators.Equal:
+                    statement = (textA == textB);
+                    break;
+                case GameEnums.ComparisonOperators.NotEqual:
+                    statement = (textA != textB);
+                    break;
+            }
+            return statement;
+        }
+
+        private bool BoolOperation()
+        {
+            bool statement = false;
+            bool boolA = inputfields[0].nodeRefs[0].baseValue.AsBool();
+            bool boolB = inputfields[2].nodeRefs[0].baseValue.AsBool();
+
+            switch (comOp)
+            {
+                case GameEnums.ComparisonOperators.Equal:
+                    statement = (boolA == boolB);
+                    break;
+                case GameEnums.ComparisonOperators.NotEqual:
+                    statement = (boolA != boolB);
+                    break;
+            }
+            return statement;
         }
 
         public override void ValueAssignment()
         {
-            baseValue = inputfields[0].nodeRefs[0].baseValue;
+            if (inputfields[0].nodeRefs[0] != null)
+            {
+                valueA = inputfields[0].nodeRefs[0].baseValue;
+            }
+
+            if (inputfields[1].nodeRefs[0] != null)
+            {
+                comOp = inputfields[1].nodeRefs[0].baseValue.comOp;
+            }
+
+
+            if (inputfields[2].nodeRefs[0] != null)
+            {
+                valueB = inputfields[2].nodeRefs[0].baseValue;
+            }
+
+            base.ValueAssignment();
         }
 
         public override string ToString()
@@ -222,23 +378,214 @@ namespace GameNodes
         }
     }
 
+    public class ComparisonOpNode : BaseNode
+    {
+        public ComparisonOpNode(string name) : base(name, 1, 1)
+        {
+            inputfields[0] = new()
+            {
+                name = "Operator",
+                fieldInputType = FieldInput.Dropdown,
+            };
+            inputfields[0].nodeRefs = new();
+
+            outputfields[0] = new()
+            {
+                name = "Connect",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[0].nodeRefs = new();
+
+            baseNode = true;
+            nodeType = Nodes.ComparisonOpNode;
+        }
+
+        public override void Operation()
+        {
+            if (!executeReady)
+            {
+                throw new InvalidOperationException("Execute called while not ready");
+            }
+
+            Debug.Log(ToString());
+
+            base.Operation();
+
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+
+        public override void ValueAssignment()
+        {
+            throw new System.NotImplementedException();
+        }
+
+    }
+
+    public class LogicalOpNode : BaseNode
+    {
+        public LogicalOpNode(string name) : base(name, 1, 1)
+        {
+            inputfields[0] = new()
+            {
+                name = "A",
+                fieldInputType = FieldInput.Dropdown,
+            };
+            inputfields[0].nodeRefs = new();
+
+            outputfields[0] = new()
+            {
+                name = "Connect",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[0].nodeRefs = new();
+
+            baseNode = true;
+            nodeType = Nodes.LogicalOpNode;
+        }
+
+        public override void Operation()
+        {
+            if (!executeReady)
+            {
+                throw new InvalidOperationException("Execute called while not ready");
+            }
+
+            Debug.Log(ToString());
+
+            base.Operation();
+
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+
+        public override void ValueAssignment()
+        {
+            throw new System.NotImplementedException();
+        }
+
+    }
+
+
 
     public class ConditionNode : BaseNode
     {
-        public ConditionNode(string name, NodeValueType valueType) : base(name, 1, 1)
+        bool statementA;
+        bool statementB;
+        GameEnums.LogicalOperators logicalOp;
+
+        public ConditionNode(string name) : base(name, 3, 2)
         {
+            inputfields[0] = new()
+            {
+                name = "StatementA",
+                fieldInputType = FieldInput.Toggle,
+            };
+            inputfields[0].nodeRefs = new();
+
+            inputfields[1] = new()
+            {
+                name = "Operation",
+                fieldInputType = FieldInput.Dropdown,
+            };
+            inputfields[1].nodeRefs = new();
+
+
+            inputfields[2] = new()
+            {
+                name = "StatementB",
+                fieldInputType = FieldInput.Toggle,
+            };
+            inputfields[2].nodeRefs = new();
+
+
+            outputfields[0] = new()
+            {
+                name = "True",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[0].nodeRefs = new();
+
+            outputfields[1] = new()
+            {
+                name = "False",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[1].nodeRefs = new();
 
         }
 
         public override void Operation()
         {
+            if (logicalOp == GameEnums.LogicalOperators.And)
+            {
+                if (statementA && statementB)
+                {
+                    foreach (var outputNode in outputfields[0].nodeRefs)
+                    {
+                        outputNode.baseValue = baseValue;
+                        outputNode.ValueAssignment();
+                        if (outputNode.executeReady)
+                        {
+                            outputNode.Operation();
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var outputNode in outputfields[1].nodeRefs)
+                    {
+                        outputNode.baseValue = baseValue;
+                        outputNode.ValueAssignment();
+                        if (outputNode.executeReady)
+                        {
+                            outputNode.Operation();
+                        }
+                    }
+                }
 
+            }
+            else if (logicalOp == GameEnums.LogicalOperators.Or)
+            {
+                if (statementA || statementB)
+                {
+                    foreach (var outputNode in outputfields[0].nodeRefs)
+                    {
+                        outputNode.baseValue = baseValue;
+                        outputNode.ValueAssignment();
+                        if (outputNode.executeReady)
+                        {
+                            outputNode.Operation();
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var outputNode in outputfields[1].nodeRefs)
+                    {
+                        outputNode.baseValue = baseValue;
+                        outputNode.ValueAssignment();
+                        if (outputNode.executeReady)
+                        {
+                            outputNode.Operation();
+                        }
+                    }
+                }
+            }
         }
 
         public override void ValueAssignment()
         {
-            baseValue = inputfields[0].nodeRefs[0].baseValue;
+            statementA = inputfields[0].nodeRefs[0].baseValue.AsBool();
+            statementB = inputfields[1].nodeRefs[0].baseValue.AsBool();
         }
+
         public override string ToString()
         {
             return base.ToString();
@@ -262,6 +609,159 @@ namespace GameNodes
         public override string ToString()
         {
             return base.ToString();
+        }
+    }
+
+    public class InputRefNode : BaseNode
+    {
+        AvaItemPreBuild itemRef;
+
+        public InputRefNode(string name, AvaItemPreBuild itemRef) : base(name, 1, 1)
+        {
+            inputfields[0] = new()
+            {
+                name = "Input Type",
+                fieldInputType = FieldInput.Dropdown,
+            };
+            inputfields[0].nodeRefs = new();
+
+            outputfields[0] = new()
+            {
+                name = "Connect",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[0].nodeRefs = new();
+
+            baseNode = true;
+            this.itemRef = itemRef;
+            base.itemRef = ItemType.Input;
+        }
+
+        public override void Operation()
+        {
+            if (!executeReady)
+            {
+                throw new InvalidOperationException("Execute called while not ready");
+            }
+
+            Debug.Log(ToString());
+
+            base.Operation();
+        }
+
+        public override void ValueAssignment()
+        {
+            throw new System.NotImplementedException();
+        }
+
+
+        public override void SpecialSetup()
+        {
+
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+
+    }
+
+    public class OutputRefNode : BaseNode
+    {
+        AvaItemPreBuild itemRef;
+
+        public OutputRefNode(string name, AvaItemPreBuild itemRef) : base(name, 1, 0)
+        {
+            inputfields[0] = new()
+            {
+                name = "Connect",
+                fieldInputType = FieldInput.Dropdown,
+            };
+            inputfields[0].nodeRefs = new();
+
+            this.itemRef = itemRef;
+            base.itemRef = ItemType.Output;
+        }
+
+        public override void Operation()
+        {
+            if (!executeReady)
+            {
+                throw new InvalidOperationException("Execute called while not ready");
+            }
+
+            Debug.Log(ToString());
+
+            base.Operation();
+        }
+
+        public override void ValueAssignment()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+
+        public static implicit operator OutputRefNode(InputRefNode v)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class ActorRefNode : BaseNode
+    {
+        AvaItemPreBuild itemRef;
+
+        public ActorRefNode(string name, AvaItemPreBuild itemRef) : base(name, 1, 1)
+        {
+            inputfields[0] = new()
+            {
+                name = "Input Type",
+                fieldInputType = FieldInput.Dropdown,
+            };
+            inputfields[0].nodeRefs = new();
+
+            outputfields[0] = new()
+            {
+                name = "Connect",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[0].nodeRefs = new();
+
+            baseNode = true;
+            this.itemRef = itemRef;
+            base.itemRef = ItemType.Actor;
+        }
+
+        public override void Operation()
+        {
+            if (!executeReady)
+            {
+                throw new InvalidOperationException("Execute called while not ready");
+            }
+
+            Debug.Log(ToString());
+
+            base.Operation();
+        }
+
+        public override void ValueAssignment()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+
+        public static implicit operator ActorRefNode(InputRefNode v)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -289,6 +789,7 @@ namespace GameNodes
         {
             baseValue = inputfields[0].nodeRefs[0].baseValue;
         }
+
         public override string ToString()
         {
             return base.ToString();

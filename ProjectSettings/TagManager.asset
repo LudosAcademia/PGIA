@@ -19,6 +19,7 @@ TagManager:
   - NodeConnections
   - NodeParent
   - FieldTypeToggle
+  - FieldTypeDropdown
   layers:
   - Default
   - TransparentFX

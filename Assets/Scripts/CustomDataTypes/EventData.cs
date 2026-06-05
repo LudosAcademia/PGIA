@@ -8,6 +8,7 @@ public class EventData
     public List<AvaItemPreBuild> inputObjectRefs = new();
     public AvaItemPreBuild outputObjectRef;
     public AvaItemPreBuild actorObjectRef;
+    public bool debug = false;
 }
 
 

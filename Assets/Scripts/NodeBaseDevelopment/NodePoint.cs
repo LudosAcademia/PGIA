@@ -11,6 +11,7 @@ public class NodePoint : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     private Image baseImage;
     private Color baseColor = Color.gray;
     private LogicManager logicManager;
+    private NodeLogic nodeLogic;
     [HideInInspector] public RectTransform nodePoint;
     [HideInInspector] public NodeData nodeData;
     [HideInInspector] public int fieldIndex;
@@ -23,6 +24,7 @@ public class NodePoint : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     }
 
     public LogicManager LogicManager { get => logicManager; set => logicManager = value; }
+    public NodeLogic NodeLogic { get => nodeLogic; set => nodeLogic = value; }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -30,7 +32,6 @@ public class NodePoint : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         //Debug.Log("newConnection" + logicManager.newConnection);
         if (!logicManager.newConnection)
         {
-            logicManager.AssignNodeControlInputs(false);
             logicManager.AssignNodeConnectInputs(true);
             logicManager.startNodeFieldFlag = flag;
             logicManager.startConnectFieldIndex = fieldIndex;
@@ -47,6 +48,7 @@ public class NodePoint : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
         logicManager.inNodePointVisual = true;
         logicManager.CheckInVoid();
+        logicManager.currNodeLogic = NodeLogic;
         //OnNodePoint?.Invoke(nodePoint);
     }
 
@@ -56,12 +58,12 @@ public class NodePoint : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         //Debug.Log("newConnection" + logicManager.newConnection);
         if (!logicManager.newConnection)
         {
-            logicManager.AssignNodeControlInputs(true);
             logicManager.AssignNodeConnectInputs(false);
         }
 
         logicManager.inNodePointVisual = false;
         logicManager.CheckInVoid();
+
         //OnNodePoint?.Invoke(nodePoint);
     }
 }
