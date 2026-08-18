@@ -7,7 +7,6 @@ public class PlaygroundGrid : MonoBehaviour
     public Dictionary<string, GridLayer> grid;
     public List<string> gridLayerKeys;
     public Dictionary<Guid, AvaItemPreBuild> logicReadyItems;
-    public List<Guid> instanceIds;
     private int gridSize;
 
     public int GridSize { get => gridSize; set => gridSize = value; }
@@ -114,6 +113,7 @@ public class GridTile
     public int index;
     public int containId;
     public Guid instanceId;
+    public bool logicTile;
 
     public GridTile()
     {
@@ -122,6 +122,17 @@ public class GridTile
         this.rotY = 0;
         this.index = -1;
         this.containId = -1;
+        this.logicTile = false;
+    }
+
+    public GridTile(int x, int z, int index, int rotY, int containId, Guid instanceId)
+    {
+        this.x = x;
+        this.z = z;
+        this.rotY = rotY;
+        this.index = index;
+        this.containId = containId;
+        this.instanceId = instanceId;
     }
 
     public GridTile(int x, int z, int index, int rotY, int containId)

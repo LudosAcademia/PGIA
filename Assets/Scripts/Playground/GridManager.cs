@@ -40,12 +40,20 @@ public class GridManager : MonoBehaviour
     [SerializeField] private ObjectManipulator objectManipulator;
     [SerializeField] private ObjectsDatabase objectsDatabase;
 
+    [SerializeField] private GameObject worldInteractionUIPrefab;
+
     [Space(10)]
     [Header("Test Objects: ")]
     [SerializeField] private GameObject testObjectPrefab;
     [SerializeField] private TextMeshProUGUI layerText;
     [SerializeField] private TextMeshProUGUI selectedObjectText;
     [SerializeField] private TextMeshProUGUI selectedTool;
+
+    [Space(10)]
+    [Header("Play Mode: ")]
+    [SerializeField] private GameObject gameInfoPanel;
+    [SerializeField] private TMP_InputField selectedItemInputField;
+    [SerializeField] private TextMeshProUGUI playModeSelectionText;
 
 
     public ObjectsDatabase ObjectsDatabase { get => objectsDatabase; set => objectsDatabase = value; }
@@ -79,13 +87,13 @@ public class GridManager : MonoBehaviour
         ClearBuildTools();
     }
 
-    private void CreateGrid(int size, int playgroundIndex)
+    private void CreateGrid(int size, int playgroundIndex, bool playMode)
     {
 
         SetupGrid(size);
 
         //Load the grid data on the grid on the world from previos sessions
-        LoadGrid(playgroundIndex, size);
+        LoadGrid(playgroundIndex, size, playMode);
     }
 
     private void SetupGrid(int size)
@@ -112,7 +120,7 @@ public class GridManager : MonoBehaviour
         inputManager.SetCameraTarget(centerPoint);
     }
 
-    private void LoadGrid(int playgroundIndex, int size)
+    private void LoadGrid(int playgroundIndex, int size, bool playMode)
     {
 
         //Load the Index based Tile Array:
@@ -141,7 +149,18 @@ public class GridManager : MonoBehaviour
                 int z = index / size;
                 int rotY = tileDataArray[layerIndex].tiles[i].tile_rot_y;
                 int containId = tileDataArray[layerIndex].tiles[i].tile_contain_id;
-                GridTile loadTile = new GridTile(x, z, index, rotY, containId);
+                bool logicTile = tileDataArray[layerIndex].tiles[i].tile_is_logic;
+                GridTile loadTile;
+                if (logicTile)
+                {
+                    Guid instanceId = Guid.Parse(tileDataArray[layerIndex].tiles[i].tile_guid);
+                    loadTile = new GridTile(x, z, index, rotY, containId, instanceId);
+                }
+                else
+                {
+                    loadTile = new GridTile(x, z, index, rotY, containId);
+                }
+
                 playgroundGrid.SetDataIndex(loadTile, index, size, tileDataArray[layerIndex].tile_layer);
             }
         }
@@ -163,11 +182,39 @@ public class GridManager : MonoBehaviour
             }
         }
 
+        if (GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].item_data != null)
+        {
+            List<ItemData> itemData = GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].item_data;
+
+            foreach (var item in itemData)
+            {
+                AvaItemPreBuild newItem = new AvaItemPreBuild();
+
+                newItem.type = (InteractType)item.type;
+                newItem.index = item.index;
+                newItem.layer = item.layer;
+                newItem.itemName = item.itemName;
+                newItem.containId = item.containId;
+                newItem.avalible = item.avalible;
+                playgroundGrid.logicReadyItems.Add(item.itemId, newItem);
+
+            }
+        }
+
 
         currentGridLayer = gridLayerKeys[0];
-        OnLayerChange?.Invoke(gridLayerKeys);
-        OnItemsChange?.Invoke(objectsDatabase);
-        OnGridConstFinished?.Invoke();
+
+        if (playMode)
+        {
+            GoPlayState();
+        }
+        else
+        {
+            OnLayerChange?.Invoke(gridLayerKeys);
+            OnItemsChange?.Invoke(objectsDatabase);
+            OnGridConstFinished?.Invoke();
+        }
+
     }
 
     public void SaveGrid(int playgroundIndex)
@@ -175,7 +222,6 @@ public class GridManager : MonoBehaviour
         int totalSize = playgroundGrid.GridSize * playgroundGrid.GridSize;
         int size = playgroundGrid.GridSize;
         List<TileDataArray> tileDataArray = new List<TileDataArray>();
-        Debug.Log(PrintSaveFile(playgroundIndex));
         foreach (var item in playgroundGrid.gridLayerKeys)
         {
             TileDataArray newTileDataArray = new TileDataArray();
@@ -188,18 +234,43 @@ public class GridManager : MonoBehaviour
                 newTileDataArray.tiles[i].tile_index = i;
                 newTileDataArray.tiles[i].tile_contain_id = playgroundGrid.GetDataIndex(i, size, item).containId;
                 newTileDataArray.tiles[i].tile_rot_y = playgroundGrid.GetDataIndex(i, size, item).rotY;
+                if (playgroundGrid.GetDataIndex(i, size, item).logicTile)
+                {
+                    newTileDataArray.tiles[i].tile_guid = playgroundGrid.GetDataIndex(i, size, item).instanceId.ToString();
+                    newTileDataArray.tiles[i].tile_is_logic = playgroundGrid.GetDataIndex(i, size, item).logicTile;
+                }
+
             }
 
             tileDataArray.Add(newTileDataArray);
 
         }
+
+        List<ItemData> itemData = new List<ItemData>();
+        foreach (var item in playgroundGrid.logicReadyItems)
+        {
+            ItemData newItemData = new ItemData();
+            newItemData.type = (int)item.Value.type;
+            newItemData.index = item.Value.index;
+            newItemData.layer = item.Value.layer;
+            newItemData.itemName = item.Value.itemName;
+            newItemData.containId = item.Value.containId;
+            newItemData.itemId = item.Key;
+            newItemData.avalible = item.Value.avalible;
+            itemData.Add(newItemData);
+        }
+
+        GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].item_data = itemData;
         GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].tiles_arrays = tileDataArray;
+        Debug.Log(PrintSaveFile(playgroundIndex));
+
     }
 
     private string PrintSaveFile(int playgroundIndex)
     {
         int totalSize = playgroundGrid.GridSize * playgroundGrid.GridSize;
         int size = playgroundGrid.GridSize;
+        List<ItemData> itemData = GameManager.Instance.GameData.currentUser.playgrounds[playgroundIndex].item_data;
         List<TileDataArray> tileDataArray = new List<TileDataArray>();
         string saveFile = "no save file";
 
@@ -219,11 +290,17 @@ public class GridManager : MonoBehaviour
 
             }
         }
+        saveFile += "\n**********************\n";
+
+        foreach (var item in itemData)
+        {
+            saveFile += item.itemName + " /Guid " + item.itemId;
+        }
+
 
         return saveFile;
 
     }
-
 
     private void Update()
     {
@@ -279,6 +356,15 @@ public class GridManager : MonoBehaviour
         ClearBuildTools();
         selectionState = null;
         buildingState = null;
+        OnItemSelected?.Invoke(false, "", false);
+    }
+
+    public void GoPlayState()
+    {
+        buildingState = null;
+        selectionState = new PlayState(previewSystem, this);
+        inputManager.OnClicked += SelectObjectOnPlay;
+        OnSelectionSection?.Invoke();
     }
 
     public void GoSelectState()
@@ -447,6 +533,64 @@ public class GridManager : MonoBehaviour
     #endregion
 
     #region Selection
+
+    private void SelectObjectOnPlay()
+    {
+        if (inputManager.IsMouseOnGrid() && !inputManager.IsPointerOverUI())
+        {
+            //Debug.Log("Current Layer: " + currentGridLayer);
+            if (playgroundGrid.grid[currentGridLayer].visuals[GetGridPos().x, GetGridPos().z] != null)
+            {
+                currentObjectId = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].containId;
+                GameObject currentGameobject = playgroundGrid.grid[currentGridLayer].visuals[GetGridPos().x, GetGridPos().z].gameObject;
+
+                int id = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].containId;
+                int selectedObjectIndex = objectsDatabase.objectData.FindIndex(data => data.ID == id);
+
+                if (objectsDatabase.objectData[selectedObjectIndex].Interaction != InteractType.None)
+                {
+                    Debug.Log("Guid: " + playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].instanceId);
+                    Guid instanceId = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].instanceId;
+                    currentInstanceId = instanceId;
+                    string name = playgroundGrid.logicReadyItems[instanceId].itemName;
+                    string info = "Selected Logic Tile: " + GetGridPos() +
+                        " \nContains: " + name;
+
+                    gameInfoPanel.SetActive(true);
+                    playModeSelectionText.text = info;
+                }
+                else
+                {
+                    string name = objectsDatabase.objectData[selectedObjectIndex].Name;
+                    Debug.Log("No Guid ");
+
+                    string info = "Selected Tile: " + GetGridPos() +
+                        " \nContains: " + name +
+                        " \nID: " + id;
+                    gameInfoPanel.SetActive(false);
+                }
+
+                selectionState.OnAction(GetGridPos(), currentGridLayer, currentGameobject);
+
+            }
+            else
+            {
+                //Debug.Log("Nothing to select!");
+                gameInfoPanel.SetActive(false);
+                selectionState.EndState();
+            }
+        }
+
+
+        /*
+         gameInfoPanel;
+    [SerializeField] private TMP_InputField selectedItemInputField;
+    [SerializeField] private TextMeshProUGUI playModeSelectionText;
+         
+         */
+
+    }
+
     private void SelectObject()
     {
         if (inputManager.IsMouseOnGrid() && !inputManager.IsPointerOverUI())
@@ -456,13 +600,13 @@ public class GridManager : MonoBehaviour
             {
                 currentObjectId = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].containId;
                 GameObject currentGameobject = playgroundGrid.grid[currentGridLayer].visuals[GetGridPos().x, GetGridPos().z].gameObject;
-                selectionState.OnAction(GetGridPos(), currentGridLayer, currentGameobject);
 
                 int id = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].containId;
                 int selectedObjectIndex = objectsDatabase.objectData.FindIndex(data => data.ID == id);
 
                 if (objectsDatabase.objectData[selectedObjectIndex].Interaction != InteractType.None)
                 {
+                    Debug.Log("Guid: " + playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].instanceId);
                     Guid instanceId = playgroundGrid.grid[currentGridLayer].data[GetGridPos().x, GetGridPos().z].instanceId;
                     currentInstanceId = instanceId;
                     string name = playgroundGrid.logicReadyItems[instanceId].itemName;
@@ -473,12 +617,15 @@ public class GridManager : MonoBehaviour
                 else
                 {
                     string name = objectsDatabase.objectData[selectedObjectIndex].Name;
+                    Debug.Log("No Guid ");
 
                     string info = "Selected Tile: " + GetGridPos() +
                         " \nContains: " + name +
                         " \nID: " + id;
                     OnItemSelected?.Invoke(true, info, false);
                 }
+
+                selectionState.OnAction(GetGridPos(), currentGridLayer, currentGameobject);
 
             }
             else
@@ -537,6 +684,7 @@ public class GridManager : MonoBehaviour
         inputManager.OnClicked -= BuildAllObjects;
         inputManager.OnClicked -= BuildObject;
     }
+
     public void ClearSelectTools()
     {
         inputManager.OnClicked -= SelectObject;

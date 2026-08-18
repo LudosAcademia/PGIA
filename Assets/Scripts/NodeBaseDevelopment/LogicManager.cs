@@ -3,7 +3,6 @@ using GameNodes;
 using System;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 
 public class LogicManager : MonoBehaviour
@@ -28,6 +27,11 @@ public class LogicManager : MonoBehaviour
     [SerializeField] private GameObject actorItemRef;
     [SerializeField] private GameObject outputItemRef;
     [SerializeField] private GameObject inputItemRefs;
+    [Space(5)]
+
+    [Header("EventControlNodePos")]
+    [SerializeField] private Transform eventStartNodePos;
+    [SerializeField] private Transform eventEndNodePos;
     [Space(5)]
 
 
@@ -98,7 +102,7 @@ public class LogicManager : MonoBehaviour
     private bool inVoid = false;
     private bool isFieldAvalible = false;
 
-    [HideInInspector] public bool isNodeManuplationReady = false;    
+    [HideInInspector] public bool isNodeManuplationReady = false;
     [HideInInspector] public bool inNodeVisual = false;
     [HideInInspector] public bool inNodePointVisual = false;
 
@@ -216,8 +220,16 @@ public class LogicManager : MonoBehaviour
 
         }
 
-        Node executeNode = new ExecuteNode("Execute");
-        CreateNode(executeNode);
+        Node eventStartNode = new EventStartNode("Event Start");
+        NodeData tempNodeStart = CreateNode(eventStartNode);
+        MoveNode(eventStartNodePos, tempNodeStart);
+
+
+        Node eventEndNode = new EventEndNode("Event End");
+        NodeData tempNodeEnd = CreateNode(eventEndNode);
+        MoveNode(eventEndNodePos, tempNodeEnd);
+
+
     }
 
     private void SetupGraph()
@@ -412,7 +424,7 @@ public class LogicManager : MonoBehaviour
         lastMousePos = mousePos;
     }
 
-    private void CreateNode(Node nodeData)
+    private NodeData CreateNode(Node nodeData)
     {
         NodeData newNode = new NodeData();
         nodeData.guid = Guid.NewGuid();
@@ -442,6 +454,13 @@ public class LogicManager : MonoBehaviour
             nodes[index] = newNode;
             AssignTempIdentifier(newNode.nodeData, nodes.Count - 1);
         }
+
+        return newNode;
+    }
+
+    private void MoveNode(Transform pos, NodeData node)
+    {
+        node.nodeVisual.transform.position = pos.position;
     }
 
     private void AssignTempIdentifier(Node node, int id)
@@ -451,7 +470,7 @@ public class LogicManager : MonoBehaviour
 
     private void SetupRefNode(AvaItemPreBuild itemRef, Vector2 mousePos)
     {
-        //Debug.Log("Create Ref" + itemRef.itemName + " On " + mousePos);
+        Debug.Log("Create Ref" + itemRef.itemName + " On " + mousePos);
 
         InteractType type = itemRef.type;
         string nodeName = itemRef.itemName;
@@ -517,12 +536,16 @@ public class LogicManager : MonoBehaviour
                 CreateNode(newConditionNodeNode);
                 break;
             case Nodes.ComparisonOpNode:
-                ComparisonOpNode newComparisonOpNodeNode = new ComparisonOpNode("ComparisonOperator");
+                ComparisonOpNode newComparisonOpNodeNode = new ComparisonOpNode("Comparison Operator");
                 CreateNode(newComparisonOpNodeNode);
                 break;
             case Nodes.LogicalOpNode:
-                LogicalOpNode newLogicalOpNodeNodeNode = new LogicalOpNode("LogicalOperator");
+                LogicalOpNode newLogicalOpNodeNodeNode = new LogicalOpNode("Logical Operator");
                 CreateNode(newLogicalOpNodeNodeNode);
+                break;
+            case Nodes.AnimNode:
+                AnimNode newAnimNode = new AnimNode("Animation");
+                CreateNode(newAnimNode);
                 break;
         }
     }

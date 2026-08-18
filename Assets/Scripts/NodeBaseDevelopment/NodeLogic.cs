@@ -94,6 +94,7 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
                         });
                         break;
                     case FieldInput.Dropdown:
+                        Debug.Log("In Dropdown at Switch statement, Node Type " + node.nodeData.nodeType);
                         GameObject fieldTypeDropdown = FindChildWithTag(newInputField.transform, "FieldTypeDropdown");
                         fieldTypeDropdown.SetActive(true);
                         int indexDropdown = i;
@@ -148,6 +149,7 @@ public class NodeLogic : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     {
         if (nodeType == Nodes.ItemRefInputNode)
         {
+            Debug.Log("Creating Dropdown for ItemRefInputNode");
             dropdown.ClearOptions();
             List<TMP_Dropdown.OptionData> optionsData = new();
 

@@ -1,6 +1,6 @@
 ﻿using GameEnums;
 using System;
-using System.Data;
+using System.Buffers.Text;
 using UnityEngine;
 
 namespace GameNodes
@@ -61,6 +61,114 @@ namespace GameNodes
         }
     }
 
+    public class EventStartNode : BaseNode
+    {
+        public EventStartNode(string name) : base(name, 0, 1)
+        {
+            outputfields[0] = new()
+            {
+                name = "Out",
+                fieldInputType = FieldInput.Event,
+            };
+            outputfields[0].nodeRefs = new();
+            executeReady = true;
+        }
+
+        public override void Operation()
+        {
+            Debug.Log("Base Value in Value Node: " + baseValue.ToString());
+        }
+
+        public override void ValueAssignment()
+        {
+            baseValue = inputfields[0].nodeRefs[0].baseValue;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+
+    public class EventEndNode : BaseNode
+    {
+        public EventEndNode(string name) : base(name, 1, 0)
+        {
+            inputfields[0] = new()
+            {
+                name = "In",
+                fieldInputType = FieldInput.Event,
+            };
+            inputfields[0].nodeRefs = new();
+            executeReady = true;
+
+        }
+
+        public override void Operation()
+        {
+            Debug.Log("Base Value in Value Node: " + baseValue.ToString());
+        }
+
+        public override void ValueAssignment()
+        {
+            baseValue = inputfields[0].nodeRefs[0].baseValue;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+
+    public class AnimNode : BaseNode
+    {
+        public AnimNode(string name) : base(name, 2, 1)
+        {
+            inputfields[0] = new()
+            {
+                name = "Event In",
+                fieldInputType = FieldInput.Event,
+            };
+            inputfields[0].nodeRefs = new();
+
+            inputfields[1] = new()
+            {
+                name = "Actor",
+                fieldInputType = FieldInput.None,
+            };
+            inputfields[1].nodeRefs = new();
+
+            outputfields[0] = new()
+            {
+                name = "Event Out",
+                fieldInputType = FieldInput.Event,
+            };
+            outputfields[0].nodeRefs = new();
+        }
+
+        public override void Operation()
+        {
+            RunAnimation();
+            base.Operation();
+            //Debug.Log("Base Value in Value Node: " + baseValue.ToString());
+        }
+
+        public void RunAnimation()
+        {
+            Debug.Log("Run Animation");
+        }
+
+
+        public override void ValueAssignment()
+        {
+            baseValue = inputfields[0].nodeRefs[0].baseValue;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
 
     public class BasicMathNode : BaseNode
     {
@@ -70,31 +178,51 @@ namespace GameNodes
         public NodeValue numberA;
         public NodeValue numberB;
 
-        public BasicMathNode(string name) : base(name, 2, 1)
+        public BasicMathNode(string name) : base(name, 3, 2)
         {
             inputfields[0] = new()
             {
-                name = "A",
-                fieldInputType = FieldInput.Number,
+                name = "Event In",
+                fieldInputType = FieldInput.Event,
+
             };
             inputfields[0].nodeRefs = new();
 
 
             inputfields[1] = new()
             {
-                name = "B",
+                name = "A",
                 fieldInputType = FieldInput.Number,
-
             };
             inputfields[1].nodeRefs = new();
 
 
+            inputfields[2] = new()
+            {
+                name = "B",
+                fieldInputType = FieldInput.Number,
+
+            };
+            inputfields[2].nodeRefs = new();
+
+
+            //---------------------------------------------------
+
             outputfields[0] = new()
+            {
+                name = "Event Out",
+                fieldInputType = FieldInput.None,
+            };
+            outputfields[0].nodeRefs = new();
+
+            outputfields[1] = new()
             {
                 name = "Output",
                 fieldInputType = FieldInput.None,
             };
-            outputfields[0].nodeRefs = new();
+            outputfields[1].nodeRefs = new();
+
+
         }
 
         public override void ValueAssignment()
@@ -472,8 +600,6 @@ namespace GameNodes
 
     }
 
-
-
     public class ConditionNode : BaseNode
     {
         bool statementA;
@@ -635,6 +761,8 @@ namespace GameNodes
             baseNode = true;
             this.itemRef = itemRef;
             base.itemRef = ItemType.Input;
+            nodeType = Nodes.ItemRefInputNode;
+
         }
 
         public override void Operation()
@@ -671,17 +799,27 @@ namespace GameNodes
     {
         AvaItemPreBuild itemRef;
 
-        public OutputRefNode(string name, AvaItemPreBuild itemRef) : base(name, 1, 0)
+        public OutputRefNode(string name, AvaItemPreBuild itemRef) : base(name, 1, 1)
         {
             inputfields[0] = new()
             {
-                name = "Connect",
-                fieldInputType = FieldInput.Dropdown,
+                name = "Event In",
+                fieldInputType = FieldInput.Event,
             };
             inputfields[0].nodeRefs = new();
 
+            outputfields[0] = new()
+            {
+                name = "Event Out",
+                fieldInputType = FieldInput.Event,
+            };
+            outputfields[0].nodeRefs = new();
+
+
+
             this.itemRef = itemRef;
             base.itemRef = ItemType.Output;
+            nodeType = Nodes.ItemRefOutputNode;
         }
 
         public override void Operation()
@@ -735,6 +873,7 @@ namespace GameNodes
             baseNode = true;
             this.itemRef = itemRef;
             base.itemRef = ItemType.Actor;
+            nodeType = Nodes.ItemRefActorNode;
         }
 
         public override void Operation()
@@ -764,7 +903,6 @@ namespace GameNodes
             throw new NotImplementedException();
         }
     }
-
 
     public class ExecuteNode : BaseNode
     {

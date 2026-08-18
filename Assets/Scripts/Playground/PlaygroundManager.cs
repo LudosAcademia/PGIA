@@ -10,7 +10,7 @@ public class PlaygroundManager : MonoBehaviour
     [SerializeField] private LogicManager logicManager;
     public GridManager GridManager { get => gridManager; set => gridManager = value; }
 
-    public static event Action<int, int> OnStartPlaygroundEdit;
+    public static event Action<int, int,bool> OnStartPlaygroundEdit;
     public static event Action OnCancelPlaygroundEdit;
     public static event Action OnEndPlaygroundEdit;
 
@@ -40,6 +40,10 @@ public class PlaygroundManager : MonoBehaviour
     public static event Action OnEndEventItemPanel;
 
     public static event Action OnEditTileItem;
+
+    public static event Action OnStartPlayMode;
+    public static event Action OnEndPlayMode;
+
 
     public void OnEditTileItemButton()
     {
@@ -129,6 +133,30 @@ public class PlaygroundManager : MonoBehaviour
         OnEndPlaygroundDelete?.Invoke();
     }
 
+    public void StartPlayMode()
+    {
+        OnStartPlayMode?.Invoke();
+        int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
+        int totalSize = GameManager.Instance.GameData.currentUser.playgrounds[index].plygrd_size;
+        int size = (int)Math.Sqrt(totalSize);
+        //Debug.Log("The index: " + index + "The Size: " + size);
+        if (gridContainer.transform.childCount != 0)
+        {
+            for (int i = 0; i < gridContainer.transform.childCount; i++)
+            {
+                Destroy(gridContainer.transform.GetChild(i).gameObject);
+            }
+        }
+        OnStartPlaygroundEdit?.Invoke(size, index, true);
+        vCam.SetActive(true);
+    }
+
+    public void EndPlayMode()
+    {
+        OnEndPlayMode?.Invoke();
+        EndEditPlayground();
+    }
+
     public void StartEditPlayground()
     {
         int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
@@ -142,7 +170,7 @@ public class PlaygroundManager : MonoBehaviour
                 Destroy(gridContainer.transform.GetChild(i).gameObject);
             }
         }
-        OnStartPlaygroundEdit?.Invoke(size, index);
+        OnStartPlaygroundEdit?.Invoke(size, index,false);
         vCam.SetActive(true);
     }
 

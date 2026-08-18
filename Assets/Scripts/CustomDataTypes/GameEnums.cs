@@ -52,6 +52,7 @@ namespace GameEnums
         ItemRefInputNode = 13,
         ItemRefActorNode = 14,
         ItemRefOutputNode = 15,
+        AnimNode = 16,
         ExecuteNode = 100,
     }
 
@@ -67,7 +68,8 @@ namespace GameEnums
         Text,
         Number,
         Dropdown,
-        Toggle
+        Toggle,
+        Event
     }
 
     public enum NodeValueType

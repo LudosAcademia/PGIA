@@ -7,6 +7,8 @@ public class TileData
     public int tile_index = -1;
     public int tile_contain_id = 0;
     public int tile_rot_y = 0;
+    public string tile_guid = string.Empty;
+    public bool tile_is_logic = false;
 
     public TileData()
     {

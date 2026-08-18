@@ -9,7 +9,7 @@ public class PlaygroundUI : MonoBehaviour
     [SerializeField] private GameObject createPlaygroundPanel;
     [SerializeField] private GameObject viewPlaygroundPanel;
     [SerializeField] private Transform viewPlaygroundContent;
-
+    [SerializeField] private GameObject playModePanel;
 
     [SerializeField] private GameObject buttonPrefabPlaygroundView;
 
@@ -138,6 +138,10 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnEditTileItem += OpenTileItemEditPanel;
         PlaygroundManager.OnCancelLogicManagement += CloseLogicEditConfirmPanel;
 
+        PlaygroundManager.OnStartPlayMode += OpenPlayModePanel;
+        PlaygroundManager.OnEndPlayMode += ClosePlayModePanel;
+
+
         ServerClient.OnServerWait += OpenServerBlockPanel;
         ServerClient.PlaygroundSaved += AddPlaygroundToView;
         ServerClient.PlaygroundSaved += OpenServerMessageOnCreation;
@@ -148,8 +152,10 @@ public class PlaygroundUI : MonoBehaviour
         GridManager.OnToolChange += SetToolsText;
         GridManager.OnLayerChange += SetLayersInDropdown;
         GridManager.OnItemsChange += SetItemsInDropdown;
+
         GridManager.OnItemSelected += SetSelectedTile;
         GridManager.OnItemSelected += ToggleSelectedButtons;
+
         GridManager.OnMoveObjectStart += SetInfoPanel;
         GridManager.OnMoveObjectStart += ToggleMoveObjectBlockPanel;
         GridManager.OnBuildingSection += OpenBuildingPanel;
@@ -191,6 +197,9 @@ public class PlaygroundUI : MonoBehaviour
         PlaygroundManager.OnEditTileItem -= OpenTileItemEditPanel;
         PlaygroundManager.OnCancelLogicManagement -= CloseLogicEditConfirmPanel;
 
+        PlaygroundManager.OnStartPlayMode -= OpenPlayModePanel;
+        PlaygroundManager.OnEndPlayMode -= ClosePlayModePanel;
+
 
         ServerClient.OnServerWait -= OpenServerBlockPanel;
         ServerClient.PlaygroundSaved -= AddPlaygroundToView;
@@ -217,6 +226,19 @@ public class PlaygroundUI : MonoBehaviour
 
         WorldEventRef.OnStartLogicEditConfirm -= OpenLogicEditConfirmPanel;
         WorldEventRef.OnEndLogicEditConfirm -= CloseLogicEditConfirmPanel;
+    }
+
+
+    private void OpenPlayModePanel()
+    {
+        playModePanel.SetActive(true);
+        CloseCreationPanel();
+    }
+
+    private void ClosePlayModePanel()
+    {
+        playModePanel.SetActive(false);
+        OpenCreationPanel();
     }
 
     private void OpenLogicEditConfirmPanel(string text)
@@ -532,17 +554,33 @@ public class PlaygroundUI : MonoBehaviour
         noSelectedPlaygroundsText.SetActive(false);
     }
 
-    public void EditPlayground(int none, int none2)
+    public void EditPlayground(int none, int none2, bool playMode)
     {
-        int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
-        if (index != -1)
+        if (playMode)
         {
-            SetHeader(username, playgroundsData[index].plygrd_name);
-            OpenEditPanel();
-            CloseCreationPanel();
-            //Debug.Log("The Selected Playground Id: " + playgroundsData[index].id);
+            int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
+            if (index != -1)
+            {
+                SetHeader(username, playgroundsData[index].plygrd_name);
+                //OpenEditPanel();
+                CloseCreationPanel();
+                //Debug.Log("The Selected Playground Id: " + playgroundsData[index].id);
+            }
         }
-        returnButtonState = ReturnState.EditState;
+        else
+        {
+            int index = GameManager.Instance.GameData.currentUser.curr_ply_index;
+            if (index != -1)
+            {
+                SetHeader(username, playgroundsData[index].plygrd_name);
+                OpenEditPanel();
+                CloseCreationPanel();
+                //Debug.Log("The Selected Playground Id: " + playgroundsData[index].id);
+            }
+            returnButtonState = ReturnState.EditState;
+        }
+
+     
     }
 
     public void PlayPlayground(int index)
